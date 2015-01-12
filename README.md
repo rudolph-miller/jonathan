@@ -1,5 +1,7 @@
 # Jonathan
 
+Simple JSON API Server
+
 ## Usage
 
 ```
@@ -17,6 +19,7 @@
   (defun sample ()
     (list :key1  :value1))
 
+; (jonathan:start)
 ; /api/sample => {"key1":"key2"}
 ```
 
