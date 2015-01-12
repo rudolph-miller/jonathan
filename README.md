@@ -19,8 +19,8 @@ Simple JSON API Server
   (defun sample ()
     (list :key1  :value1))
 
-; (jonathan:start)
-; /api/sample => {"key1":"key2"}
+; (jonathan:start :port 3000 :server :woo)
+; localhost:3000/api/sample => {"key1":"key2"}
 ```
 
 ## Install
