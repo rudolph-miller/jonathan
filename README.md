@@ -20,6 +20,10 @@
 ; /api/sample => {"key1":"key2"}
 ```
 
+## Install
+- `(ql:quickload :jonathan)`
+- `npm install --save react-jonathan`
+
 ## Author
 
 * Rudolph-Miller

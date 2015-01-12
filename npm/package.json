@@ -1,0 +1,29 @@
+{
+  "author": "Rudolph-Miller",
+  "name": "react-jonathan",
+  "version": "0.0.1",
+  "keywords": [
+    "react",
+    "react-component",
+    "mixins",
+    "jonathan"
+  ],
+  "description": "React mixins for Jonathan",
+  "main": "index.js",
+  "scripts": {
+    "install": "jsx --extension jsx --no-cache-dir src/ js/",
+    "prepublish": "jsx --extension jsx --no-cache-dir src/ js/",
+    "watch": "jsx --extension jsx --no-cache-dir --watch src/ js/",
+    "build": "jsx --extension jsx --no-cache-dir src/ js/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Rudolph-Miller/jonathan/tree/master/npm"
+  },
+  "dependencies": {
+    "jsx-loader": "^0.12.2",
+    "qwest": "^1.5.4",
+    "react": "^0.12.2"
+  },
+  "license": "MIT"
+}

@@ -6,3 +6,5 @@
 *.x86f
 *~
 .#*
+
+node_modules/
