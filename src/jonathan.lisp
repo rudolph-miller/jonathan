@@ -40,6 +40,7 @@
     (setf *application-root* (asdf:system-source-directory app)))
   (setf *static-directory*   (merge-pathnames #P"static/" *application-root*))
   (setf *template-directory* (merge-pathnames #P"templates/" *application-root*))
+  (setf *index-tmpl* (merge-pathnames #P"index.tmpl" *template-directory*))
   (setf *app* (make-app))
   t)
 
