@@ -4,7 +4,7 @@ Simple JSON API Server
 
 ## Usage
 
-```
+```Lisp
 (in-package :cl-user)
 (defpackage sample-app
   (:use :cl :jonathan))
