@@ -13,7 +13,6 @@ Simple JSON API Server
   (syntax:use-syntax :annot)
 
   (set-app :sample-app)
-  (start-routing-rules)
 
   @GETAPI
   (defun sample ()

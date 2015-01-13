@@ -24,7 +24,6 @@
            :set-app
            :start
            :stop
-           :start-routing-rules
            :getapi
            :postapi
            :putapi
@@ -58,7 +57,3 @@
   (prog1
     (clack:stop *handler*)
     (setf *handler* nil)))
-
-(defun start-routing-rules ()
-  (setf (gethash *package* caveman2.app::*package-app-map*)
-        (gethash (find-package :jonathan.web) caveman2.app::*package-app-map*)))

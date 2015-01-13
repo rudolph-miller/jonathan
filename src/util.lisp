@@ -35,12 +35,15 @@
 
 (defmacro define-method (method)
   (let ((name (intern (concatenate 'string (symbol-name method) "API"))))
-  `(defmacro ,name (function-form)
-     (let* ((func-name (cadr function-form))
-            (func-args (caddr function-form))
-            (func-body (cadddr function-form))
-            (path-name (concatenate 'string "/api/" (string-downcase (symbol-name func-name)))))
-       `(defroute ,func-name (,path-name :method ,,method) (,@func-args) (render-json ,func-body))))))
+    `(defmacro ,name (function-form)
+       (let* ((func-name (cadr function-form))
+              (func-args (caddr function-form))
+              (func-body (cadddr function-form))
+              (path-name (concatenate 'string "/api/" (string-downcase (symbol-name func-name)))))
+         (unless (gethash *package* caveman2.app::*package-app-map*)
+           (setf (gethash *package* caveman2.app::*package-app-map*)
+                 (gethash (find-package :jonathan.web) caveman2.app::*package-app-map*)))
+         `(defroute ,func-name (,path-name :method ,,method) (,@func-args) (render-json ,func-body))))))
 
 @export
 (define-method :GET)
