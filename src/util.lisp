@@ -15,23 +15,22 @@
                 :execute-emb)
   (:import-from :datafly
                 :encode-json)
-  (:export :render
-           :render-json))
+  (:export :render-json))
 (in-package :jonathan.util)
 
 (syntax:use-syntax :annot)
 
-(defun render (template-path &optional env)
-  (let ((emb:*escape-type* :html)
-        (emb:*case-sensitivity* nil))
-    (emb:execute-emb
-     (merge-pathnames template-path
-                      *template-directory*)
-     :env env)))
-
 (defun render-json (object)
   (setf (headers *response* :content-type) "application/json")
-  (encode-json object))
+  (encode-json (convert-object)))
+
+(defun convert-object (object)
+  (if (typep object 'CONS)
+      (if (typep (car object) 'KEYWORD)
+          (loop for (key value) on object by #'cddr
+             nconcing (list key (convert-object value)))
+          (coerce object 'simple-vector))
+      object))
 
 (defmacro define-method (method)
   (let ((name (intern (concatenate 'string (symbol-name method) "API"))))
