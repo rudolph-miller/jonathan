@@ -22,7 +22,7 @@
 
 (defun render-json (object)
   (setf (headers *response* :content-type) "application/json")
-  (encode-json (convert-object)))
+  (encode-json (convert-object object)))
 
 (defun convert-object (object)
   (if (typep object 'CONS)
