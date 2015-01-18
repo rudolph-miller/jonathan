@@ -47,13 +47,16 @@ var Api = {
     mixins: [ Ajax ],
     
     componentDidMount: function () {
-        if ( !(this.api || this.props.api) ) {
+        var path = this.api || this.props.api;
+        if ( !path ) {
             console.warn("No API path specified");
             return false;
+        } else {
+            path = "/api" + path;
+            this.get(path, this.query || this.props.query).then(function (json) {
+                this.onLoad(json);
+            }.bind(this));
         }
-        this.get(this.api || this.props.api, this.query || this.props.query).then(function (json) {
-            this.onLoad(json);
-        }.bind(this));
     }
 };
 

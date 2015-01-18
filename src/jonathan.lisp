@@ -21,6 +21,8 @@
            :*template-directory*
            :*index-tmpl*
            :*app*
+           :*session*
+           :*request*
            :set-app
            :start
            :stop

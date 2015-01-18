@@ -17,7 +17,7 @@
 (defvar *web* (make-instance '<web>))
 (clear-routing-rules *web*)
 
-(Defroute ("^(?!^\/api\/).+" :regexp t) ()
+(defroute ("^(?!^\/api\/).+" :regexp t) ()
   (let ((emb:*escape-type* :html)
         (emb:*case-sensitivity* nil))
     (emb:execute-emb *index-tmpl*)))
