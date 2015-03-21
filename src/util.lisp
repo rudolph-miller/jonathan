@@ -58,3 +58,95 @@
 
 @export
 (define-method :DELETE)
+
+(defun plist-p (list)
+  (typecase list
+    (null t)
+    (cons (loop for (key val next) on list by #'cddr
+                if (not (keywordp key))
+                  return nil
+                else
+                  unless next return t))))
+(defvar *stream* nil)
+
+(defun %write-string (string)
+  (write-string string *stream*))
+
+(defun %write-char (char)
+  (write-char char *stream*))
+
+(defun to-json (obj)
+  "Converting object to JSON String."
+  (let ((*stream* (make-string-output-stream)))
+    (%to-json obj)
+    (get-output-stream-string *stream*)))
+
+(defgeneric %to-json (obj))
+
+(defmethod %to-json ((string string))
+  (%write-char #\")
+  (loop for char across string
+        do (case char
+             (#\newline (%write-string "\\n"))
+             (#\return (%write-string "\\r"))
+             (#\tab (%write-string "\\t"))
+             (#\" (%write-string "\\\""))
+             (#\\ (%write-string "\\\\"))
+             (t (%write-char char))))
+  (%write-char #\"))
+
+(defmethod %to-json ((number number))
+  (%write-string (princ-to-string number)))
+
+(defmethod %to-json ((ratio ratio))
+  (%to-json (coerce ratio 'float)))
+
+(defmethod %to-json ((list list))
+  (if (plist-p list)
+      (progn (%write-char #\{)
+             (loop for (key val next) on list by #'cddr
+                   do (%to-json (princ-to-string key))
+                   do (%write-char #\:)
+                   do (%to-json val)
+                   when next do (%write-char #\,))
+             (%write-char #\}))
+      (progn (%write-char #\[)
+             (loop for (item next) on list
+                   do (%to-json item)
+                   when next do (%write-char #\,))
+             (%write-char #\]))))
+
+(defmethod %to-json ((symbol symbol))
+  (%to-json (symbol-name symbol)))
+
+(defmethod %to-json ((true (eql t)))
+  (declare (ignore true))
+  (%write-string "true"))
+
+(defmethod %to-json ((true (eql :t)))
+  (declare (ignore true))
+  (%write-string "true"))
+
+(defmethod %to-json ((true (eql :true)))
+  (declare (ignore true))
+  (%write-string "true"))
+
+(defmethod %to-json ((false (eql :false)))
+  (declare (ignore false))
+  (%write-string "false"))
+
+(defmethod %to-json ((false (eql :f)))
+  (declare (ignore false))
+  (%write-string "false"))
+
+(defmethod %to-json ((false (eql :null)))
+  (declare (ignore false))
+  (%write-string "null"))
+
+(defmethod %to-json ((false (eql :n)))
+  (declare (ignore false))
+  (%write-string "null"))
+
+(defmethod %to-json ((n (eql nil)))
+  (declare (ignore n))
+  (%write-string "[]"))
