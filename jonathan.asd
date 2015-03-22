@@ -13,6 +13,7 @@
                :envy
                :cl-ppcre
                :fast-io
+               :jsown
 
                ;; HTML Template
                :cl-emb
