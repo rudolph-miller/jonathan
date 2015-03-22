@@ -13,9 +13,14 @@
                 :*case-sensitivity*
                 :*function-package*
                 :execute-emb)
+  (:import-from :fast-io
+                :fast-write-byte
+                :make-output-buffer
+                :finish-output-buffer)
   (:import-from :datafly
                 :encode-json)
-  (:export :render-json))
+  (:export :render-json
+           :to-json))
 (in-package :jonathan.util)
 
 (syntax:use-syntax :annot)
@@ -67,19 +72,30 @@
                   return nil
                 else
                   unless next return t))))
+
 (defvar *stream* nil)
+(defvar *octet* nil)
 
 (defun %write-string (string)
-  (write-string string *stream*))
+  (if *octet*
+      (loop for c across string
+            do (fast-write-byte (char-code c) *stream*))
+      (write-string string *stream*)))
 
 (defun %write-char (char)
-  (write-char char *stream*))
+  (if *octet*
+      (fast-write-byte (char-code char) *stream*)
+      (write-char char *stream*)))
 
-(defun to-json (obj)
+(defun to-json (obj &key octet)
   "Converting object to JSON String."
-  (let ((*stream* (make-string-output-stream)))
+  (let ((*stream* (if octet (make-output-buffer)
+                      (make-string-output-stream)))
+        (*octet* octet))
     (%to-json obj)
-    (get-output-stream-string *stream*)))
+    (if octet
+        (finish-output-buffer *stream*)
+        (get-output-stream-string *stream*))))
 
 (defgeneric %to-json (obj))
 

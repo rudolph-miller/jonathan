@@ -12,6 +12,7 @@
                :caveman2
                :envy
                :cl-ppcre
+               :fast-io
 
                ;; HTML Template
                :cl-emb
