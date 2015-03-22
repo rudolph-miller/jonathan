@@ -20,7 +20,8 @@
   (:import-from :datafly
                 :encode-json)
   (:export :render-json
-           :to-json))
+           :to-json
+           :parse))
 (in-package :jonathan.util)
 
 (syntax:use-syntax :annot)
