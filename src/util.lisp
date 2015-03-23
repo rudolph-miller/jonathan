@@ -233,9 +233,9 @@
 (defun read-string (buffer)
   (declare (type buffer buffer))
   (skip1 buffer)
-  (let ((result (with-output-to-string (result)
+  (let ((result (with-output-to-string (stream)
         (loop for index from (buffer-current buffer) to (skip-to buffer #\")
-              for chr = (buffer-elt buffer index)
+              for chr = (the standard-char (buffer-elt buffer index))
               if (eql chr #\\)
                 do (write-char
                     (case (setf chr (buffer-elt buffer (incf index)))
@@ -245,11 +245,11 @@
                       (#\r #\Return)
                       (#\t #\Tab)
                       (t chr))
-                    result)
+                    stream)
               else
-                do (write-char chr result)))))
+                do (write-char chr stream)))))
     (skip1 buffer)
-    result))
+    (the string result)))
 
 (defun read-object (buffer)
   (declare (type buffer buffer))
