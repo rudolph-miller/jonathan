@@ -79,6 +79,8 @@
                 else
                   unless next return t))))
 
+(declaim (optimize (speed 3) (safety 0) (debug 0)))
+
 (defvar *to-json-octet-default* nil)
 (defvar *stream* nil)
 (defvar *octet* nil)
@@ -168,9 +170,6 @@
 (defun make-buffer (string)
   (%make-buffer :string string :max (length string)))
 
-(defun buffer-last-p (buffer)
-  (= (1- (buffer-max buffer)) (buffer-current buffer)))
-
 (declaim (inline buffer-current-char))
 (defun buffer-current-char (buffer)
   (char (buffer-string buffer)
@@ -196,8 +195,7 @@
 
 (defmacro %skip-to (form)
   `(do ((ch (buffer-current-char buffer) (buffer-current-char buffer)))
-       ((or ,form
-            (buffer-last-p buffer))
+       (,form
         (1- (buffer-current buffer)))
      (if (eql ch #\\)
          (incf (buffer-current buffer) 2)
@@ -235,15 +233,12 @@
 (defun read-string (buffer)
   (declare (type buffer buffer))
   (skip1 buffer)
-  (prog1
-      (with-output-to-string (result)
-        (loop with escaped-p = nil
-              for index from (buffer-current buffer) to (skip-to buffer #\")
+  (let ((result (with-output-to-string (result)
+        (loop for index from (buffer-current buffer) to (skip-to buffer #\")
               for chr = (buffer-elt buffer index)
-              if escaped-p
-                do (setf escaped-p nil)
-                   (write-char
-                    (case chr
+              if (eql chr #\\)
+                do (write-char
+                    (case (setf chr (buffer-elt buffer (incf index)))
                       (#\b #\Backspace)
                       (#\f #\Newline)
                       (#\n #\Newline)
@@ -252,18 +247,15 @@
                       (t chr))
                     result)
               else
-                if (eql chr #\\)
-                  do (setf escaped-p t)
-              else
-                do (write-char chr result)))
-    (skip1 buffer)))
+                do (write-char chr result)))))
+    (skip1 buffer)
+    result))
 
 (defun read-object (buffer)
   (declare (type buffer buffer))
   (skip-to buffer #\{)
-  (loop until (progn (skip-to* buffer "\"}")
-                     (when (buffer-current-char-eql buffer #\})
-                       (skip1 buffer) t))
+  (loop do (skip-to* buffer "\"}")
+        until (buffer-current-char-eql buffer #\})
         nconc (list (make-keyword (read-string buffer))
                     (progn (skip-to buffer #\:)
                            (%read buffer)))))
