@@ -17,6 +17,11 @@
                 :fast-write-byte
                 :make-output-buffer
                 :finish-output-buffer)
+  (:import-from :alexandria
+                :make-keyword)
+  (:import-from :xsubseq
+                :xsubseq
+                :coerce-to-string)
   (:import-from :datafly
                 :encode-json)
   (:export :render-json
@@ -65,7 +70,7 @@
 @export
 (define-method :DELETE)
 
-(defun plist-p (list)
+(defun my-plist-p (list)
   (typecase list
     (null t)
     (cons (loop for (key val next) on list by #'cddr
@@ -74,21 +79,24 @@
                 else
                   unless next return t))))
 
+(defvar *to-json-octet-default* nil)
 (defvar *stream* nil)
 (defvar *octet* nil)
 
+(declaim (inline %write-string))
 (defun %write-string (string)
   (if *octet*
       (loop for c across string
             do (fast-write-byte (char-code c) *stream*))
       (write-string string *stream*)))
 
+(declaim (inline %write-char))
 (defun %write-char (char)
   (if *octet*
       (fast-write-byte (char-code char) *stream*)
       (write-char char *stream*)))
 
-(defun to-json (obj &key octet)
+(defun to-json (obj &key (octet *to-json-octet-default*))
   "Converting object to JSON String."
   (let ((*stream* (if octet (make-output-buffer)
                       (make-string-output-stream)))
@@ -119,7 +127,7 @@
   (%to-json (coerce ratio 'float)))
 
 (defmethod %to-json ((list list))
-  (if (plist-p list)
+  (if (my-plist-p list)
       (progn (%write-char #\{)
              (loop for (key val next) on list by #'cddr
                    do (%to-json (princ-to-string key))
@@ -140,19 +148,7 @@
   (declare (ignore true))
   (%write-string "true"))
 
-(defmethod %to-json ((true (eql :t)))
-  (declare (ignore true))
-  (%write-string "true"))
-
-(defmethod %to-json ((true (eql :true)))
-  (declare (ignore true))
-  (%write-string "true"))
-
 (defmethod %to-json ((false (eql :false)))
-  (declare (ignore false))
-  (%write-string "false"))
-
-(defmethod %to-json ((false (eql :f)))
   (declare (ignore false))
   (%write-string "false"))
 
@@ -160,26 +156,141 @@
   (declare (ignore false))
   (%write-string "null"))
 
-(defmethod %to-json ((false (eql :n)))
-  (declare (ignore false))
-  (%write-string "null"))
-
 (defmethod %to-json ((n (eql nil)))
   (declare (ignore n))
   (%write-string "[]"))
 
-(defun parse (object)
-  (let ((fn (symbol-function 'jsown::read-object)))
-    (setf (symbol-function 'jsown::read-object)
-          (lambda (buffer)
-            (declare (type jsown::buffer buffer))
-            (jsown::skip-until* buffer "{")
-            (loop until (progn (jsown::skip-until* buffer "\"}")
-                               (when (eql (jsown::current-char buffer) #\})
-                                 (jsown::next-char buffer) t))
-                  nconc (list (alexandria:make-keyword (jsown::read-key buffer))
-                              (progn (jsown::skip-to buffer #\:)
-                                     (jsown::read-value buffer))))))
-    (prog1 (jsown:parse object)
-      (setf (symbol-function 'jsown::read-object)
-            fn))))
+(defstruct (buffer (:constructor %make-buffer))
+  (string "" :type string)
+  (current 0 :type fixnum)
+  (max 0 :type fixnum))
+
+(defun make-buffer (string)
+  (%make-buffer :string string :max (length string)))
+
+(defun buffer-last-p (buffer)
+  (= (1- (buffer-max buffer)) (buffer-current buffer)))
+
+(declaim (inline buffer-current-char))
+(defun buffer-current-char (buffer)
+  (char (buffer-string buffer)
+        (buffer-current buffer)))
+
+(declaim (inline buffer-current-char-eql))
+(defun buffer-current-char-eql (buffer ch)
+  (eql (buffer-current-char buffer) ch))
+
+(declaim (inline buffer-elt))
+(defun buffer-elt (buffer num)
+  (char (buffer-string buffer) num))
+
+(declaim (inline buffer-subseq))
+(defun buffer-subseq (buffer start end)
+  (coerce-to-string
+   (xsubseq (buffer-string buffer) start end)))
+
+(defun parse (string)
+  (declare (type string string))
+  (let ((buf (make-buffer string)))
+    (%read buf)))
+
+(defmacro %skip-to (form)
+  `(do ((ch (buffer-current-char buffer) (buffer-current-char buffer)))
+       ((or ,form
+            (buffer-last-p buffer))
+        (1- (buffer-current buffer)))
+     (if (eql ch #\\)
+         (incf (buffer-current buffer) 2)
+         (incf (buffer-current buffer)))))
+
+(declaim (inline skip-to*))
+(defun skip-to* (buffer string)
+  (declare (type buffer buffer)
+           (type string string))
+  (%skip-to (find ch string)))
+
+(declaim (inline skip-to))
+(defun skip-to (buffer char)
+  (declare (type buffer buffer)
+           (type standard-char char))
+  (%skip-to (eql ch char)))
+
+(declaim (inline skip1))
+(defun skip1 (buffer)
+  (declare (type buffer buffer))
+  (incf (buffer-current buffer)))
+
+(defun %read (buffer)
+  (declare (type buffer buffer))
+  (skip-to* buffer "\"{[tfn0123456789-]}")
+  (case (buffer-current-char buffer)
+    (#\" (read-string buffer))
+    (#\{ (read-object buffer))
+    (#\[ (read-array buffer))
+    (#\t (incf (buffer-current buffer) 4) t)
+    (#\f (incf (buffer-current buffer) 5) nil)
+    (#\n (incf (buffer-current buffer) 4) nil)
+    (t (read-number buffer))))
+
+(defun read-string (buffer)
+  (declare (type buffer buffer))
+  (skip1 buffer)
+  (prog1
+      (with-output-to-string (result)
+        (loop with escaped-p = nil
+              for index from (buffer-current buffer) to (skip-to buffer #\")
+              for chr = (buffer-elt buffer index)
+              if escaped-p
+                do (setf escaped-p nil)
+                   (write-char
+                    (case chr
+                      (#\b #\Backspace)
+                      (#\f #\Newline)
+                      (#\n #\Newline)
+                      (#\r #\Return)
+                      (#\t #\Tab)
+                      (t chr))
+                    result)
+              else
+                if (eql chr #\\)
+                  do (setf escaped-p t)
+              else
+                do (write-char chr result)))
+    (skip1 buffer)))
+
+(defun read-object (buffer)
+  (declare (type buffer buffer))
+  (skip-to buffer #\{)
+  (loop until (progn (skip-to* buffer "\"}")
+                     (when (buffer-current-char-eql buffer #\})
+                       (skip1 buffer) t))
+        nconc (list (make-keyword (read-string buffer))
+                    (progn (skip-to buffer #\:)
+                           (%read buffer)))))
+
+(defun read-array (buffer)
+  (declare (type buffer buffer))
+  (skip1 buffer)
+  (skip-to* buffer "]\"{[tfn0123456789-")
+  (if (buffer-current-char-eql buffer #\])
+      (progn (skip1 buffer) nil)
+      (loop until (buffer-current-char-eql buffer #\])
+            collecting (%read buffer)
+            do (skip-to* buffer ",]["))))
+
+(defun read-number (buffer &key rest)
+  (declare (type buffer buffer))
+  (let* ((start (buffer-current buffer))
+         (end (1+ (if rest
+                      (skip-to* buffer ",}]")
+                      (skip-to* buffer ",}]."))))
+         (subseqed (buffer-subseq buffer start end))
+         (result (parse-integer subseqed)))
+    (if (or rest (not (buffer-current-char-eql buffer #\.)))
+        (values result (length subseqed))
+        (progn (skip1 buffer)
+               (+ result
+                  (multiple-value-bind (result len)
+                      (read-number buffer :rest t)
+                    (/ result (expt 10 len))))))))
+
