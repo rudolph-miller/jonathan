@@ -14,6 +14,7 @@
                :cl-ppcre
                :fast-io
                :jsown
+               :cl-cookie
 
                ;; HTML Template
                :cl-emb
