@@ -1,30 +1,37 @@
 # Jonathan
 
-Simple JSON API Server
+JSON encoder and decoder.  
+Using cl-cookie.util to write JSON parser.
 
 ## Usage
 
 ```Lisp
-(in-package :cl-user)
-(defpackage sample-app
-  (:use :cl :jonathan))
-  (in-package :sample-app)
+(to-json '(:name "Common Lisp" :born 1984 :impls (SBCL KCL)))
+;; => "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}"
 
-  (syntax:use-syntax :annot)
+(parse "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}")
+;; => (:NAME "Common Lisp" :BORN 1984 :IMPLS ("SBCL" "CCL" "KCL"))
 
-  (set-app :sample-app)
-
-  @GETAPI
-  (defun sample ()
-    (list :key1  :value1))
-
-; (jonathan:start :port 3000 :server :woo)
-; localhost:3000/api/sample => {"key1":"key2"}
+(parse "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}"
+       :as :alist)
+;; => (("NAME" . "Common Lisp") ("BORN" . 1984) ("IMPLS" "SBCL" "CCL" "KCL"))
 ```
 
-## Install
-- `(ql:quickload :jonathan)`
-- `npm install --save react-jonathan`
+## to-json
+  - can encode Property List into JSON string.
+  - restricts the definition of Property List.
+
+```Lisp
+(to-json '(:name :age :born :impls))
+;; => "{\"NAME\":\"AGE\",\"BORN\":\"IMPLS\"}"
+;; not "[\"NAME\",\"AGE\",\"BORN\",\"IMPLS\"]"
+
+(to-json '(:name "Common Lisp" :born))
+;; => "{\"NAME\":\"Common Lisp\",\"BORN\":[]}"
+```
+
+## parse
+  - can decode JSON string into Property List or Association List specified by `:as`.
 
 ## Author
 

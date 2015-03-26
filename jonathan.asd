@@ -6,29 +6,26 @@
 (defsystem jonathan
   :version "0.1"
   :author "Rudolph-Miller"
-  :license ""
-  :depends-on (:clack
-               :clack-middleware-csrf
-               :caveman2
-               :envy
-               :cl-ppcre
-               :fast-io
-               :jsown
-               :cl-cookie
-
-               ;; HTML Template
-               :cl-emb
-
-               ;; for CL-DBI
-               :datafly
-               :sxql
-               :cl-syntax)
+  :license "MIT"
+  :depends-on (:fast-io
+               :cl-cookie)
   :components ((:module "src"
                 :components
-                ((:file "jonathan" :depends-on ("config" "app"))
-                 (:file "web" :depends-on ("util"))
-                 (:file "util" :depends-on ("config"))
-                 (:file "config")
-                 (:file "app" :depends-on ("web")))))
-  :description ""
+                ((:file "jonathan" :depends-on ("encode" "decode"))
+                 (:file "encode" :depends-on ("util"))
+                 (:file "decode" :depends-on ("util"))
+                 (:file "util"))))
+  :description "JSON encoder and decoder."
+  :long-description
+  #.(with-open-file (stream (merge-pathnames
+                             #p"README.md"
+                             (or *load-pathname* *compile-file-pathname*))
+                            :if-does-not-exist nil
+                            :direction :input)
+      (when stream
+        (let ((seq (make-array (file-length stream)
+                               :element-type 'character
+                               :fill-pointer t)))
+          (setf (fill-pointer seq) (read-sequence seq stream))
+          seq)))
   :in-order-to ((test-op (test-op jonathan-test))))

@@ -11,7 +11,9 @@
   :components ((:module "t"
                 :components
                 ((:file "jonathan")
-                 (:test-file "util"))))
+                 (:test-file "util")
+                 (:test-file "encode")
+                 (:test-file "decode"))))
 
   :defsystem-depends-on (:prove-asdf)
   :perform (test-op :after (op c)
