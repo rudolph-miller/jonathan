@@ -31,4 +31,4 @@
                  (:file "config")
                  (:file "app" :depends-on ("web")))))
   :description ""
-  :in-order-to ((test-op (load-op jonathan-test))))
+  :in-order-to ((test-op (test-op jonathan-test))))

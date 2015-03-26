@@ -10,5 +10,10 @@
                :cl-test-more)
   :components ((:module "t"
                 :components
-                ((:file "jonathan"))))
-  :perform (load-op :after (op c) (asdf:clear-system c)))
+                ((:file "jonathan")
+                 (:test-file "util"))))
+
+  :defsystem-depends-on (:prove-asdf)
+  :perform (test-op :after (op c)
+                      (unwind-protect
+                           (funcall (intern #.(string :run-test-system) :prove.asdf) c))))

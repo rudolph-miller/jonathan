@@ -17,8 +17,6 @@
                 :fast-write-byte
                 :make-output-buffer
                 :finish-output-buffer)
-  (:import-from :alexandria
-                :make-keyword)
   (:import-from :xsubseq
                 :xsubseq
                 :coerce-to-string)
@@ -26,7 +24,8 @@
                 :encode-json)
   (:export :render-json
            :to-json
-           :parse))
+           :parse
+           :parse1))
 (in-package :jonathan.util)
 
 (syntax:use-syntax :annot)
@@ -292,7 +291,7 @@
   (or (char<= #\0 char #\9)
       (char= char #\-)))
 
-(defun parse1 (string)
+(defun parse1 (string &key (as :plist))
   (with-vector-parsing (string :dont-raise-eof-error t :unsafely t)
     (macrolet ((skip-spaces ()
                  `(skip* #\Space))
@@ -300,7 +299,9 @@
                  `(progn
                     (skip-spaces)
                     (skip? ,char)
-                    (skip-spaces))))
+                    (skip-spaces)))
+               (skip?-or-eof (char)
+                 `(or (skip? ,char) (eofp))))
       (labels ((dispatch ()
                  (skip-spaces)
                  (match-case
@@ -310,18 +311,17 @@
                   (otherwise (read-number))))
                (read-object ()
                  (skip-spaces)
-                 (loop until (skip? #\})
-                       nconc (list (make-keyword (progn (advance)
-                                                        (read-string)))
-                                   (let ((result (progn (skip-spaces)
-                                                        (advance)
-                                                        (skip-spaces)
-                                                        (dispatch))))
-                                     (skip?-with-spaces #\,)
-                                     result))))
+                 (loop until (skip?-or-eof #\})
+                       for key = (progn (advance) (read-string))
+                       for value = (progn (skip-spaces) (advance) (skip-spaces) (dispatch))
+                       do (skip?-with-spaces #\,)
+                       if (eq as :alist)
+                         collecting (cons key value)
+                       else
+                         nconc (list (make-keyword key) value)))
                (read-string ()
                  (with-output-to-string (stream)
-                   (loop until (skip? #\")
+                   (loop until (skip?-or-eof #\")
                          do (write-char
                              (the standard-char
                                   (match-case
@@ -334,13 +334,13 @@
                              stream))))
                (read-array ()
                  (skip-spaces)
-                 (loop until (skip? #\])
+                 (loop until (skip?-or-eof #\])
                        collect (prog1 (dispatch)
                                  (skip?-with-spaces #\,))))
                (read-number (&optional rest-p)
                  (let ((start (the fixnum (pos))))
                    (bind (num-str (skip-while integer-char-p))
-                     (let ((num (the fixnum (parse-integer num-str))))
+                     (let ((num (the fixnum (or (parse-integer num-str :junk-allowed t) 0))))
                        (cond
                          (rest-p
                           (the rational (/ num (the fixnum (expt 10 (- (pos) start))))))
@@ -349,3 +349,6 @@
                          (t (the fixnum num))))))))
         (skip-spaces)
         (return-from parse1 (dispatch))))))
+
+(defun make-keyword (str)
+  (intern str #.(find-package :keyword)))
