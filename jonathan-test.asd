@@ -7,7 +7,6 @@
   :author "Rudolph-Miller"
   :license ""
   :depends-on (:jonathan
-               :integral
                :prove)
   :components ((:module "t"
                 :components

@@ -17,6 +17,9 @@ Using cl-cookie.util to write JSON parser.
 (to-json '((:name . "Common Lisp") (:born . 1984) (:impls SBCL KCL)) :from :alist)
 ;; => "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}"
 
+(to-json '(:obj (:name . "Common Lisp") (:born . 1984) (:impls SBCL KCL)) :from :jsown)
+;; => "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}"
+
 (parse "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}")
 ;; => (:NAME "Common Lisp" :BORN 1984 :IMPLS ("SBCL" "CCL" "KCL"))
 
@@ -26,10 +29,14 @@ Using cl-cookie.util to write JSON parser.
 ```
 
 ## to-json
-- can encode retricted Property List or Association List into JSON format.
+- can encode Object into JSON format.
+  - Rstricted Property List. (`:from :plist`)
+  - ssociation List. (`:from :alist`)
+  - Jsown Object. (`:from :jsown`)
 - can return not only string but also octets.
 
 ```Lisp
+;; Restricted Property List Samples
 (to-json '(:name :age :born :impls))
 ;; => "{\"NAME\":\"AGE\",\"BORN\":\"IMPLS\"}"
 ;; not "[\"NAME\",\"AGE\",\"BORN\",\"IMPLS\"]"
@@ -43,8 +50,7 @@ Using cl-cookie.util to write JSON parser.
 ```Lisp
 (defclass user ()
   ((id :type integer :initarg :id)
-   (name :type string :initarg :name))
-  (:metaclass <dao-table-class>))
+   (name :type string :initarg :name)))
 
 (defmethod %to-json ((user user))
   (%write-char #\{)

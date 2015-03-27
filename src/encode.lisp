@@ -37,6 +37,34 @@
       (write-char char *stream*))
   nil)
 
+(declaim (inline alist-to-json))
+(defun alist-to-json (list)
+  (%write-char #\{)
+  (loop for (item rest) on list
+        do (%to-json (princ-to-string (car item)))
+        do (%write-char #\:)
+        do (%to-json (cdr item))
+        when rest do (%write-char #\,))
+  (%write-char #\}))
+
+(declaim (inline plist-to-json))
+(defun plist-to-json (list)
+  (%write-char #\{)
+  (loop for (key val next) on list by #'cddr
+        do (%to-json (princ-to-string key))
+        do (%write-char #\:)
+        do (%to-json val)
+        when next do (%write-char #\,))
+  (%write-char #\}))
+
+(declaim (inline list-to-json))
+(defun list-to-json (list)
+  (%write-char #\[)
+  (loop for (item next) on list
+        do (%to-json item)
+        when next do (%write-char #\,))
+  (%write-char #\]))
+
 (defun to-json (obj &key (octet *octet*) (from *from*))
   "Converting object to JSON String."
   (let ((*stream* (if octet
@@ -72,44 +100,35 @@
 (defmethod %to-json ((list list))
   (cond
     ((and (eq *from* :alist)
-          (trivial-types:association-list-p list))
-     (progn (%write-char #\{)
-            (loop for (item rest) on list
-                  do (%to-json (princ-to-string (car item)))
-                  do (%write-char #\:)
-                  do (%to-json (cdr item))
-                  when rest do (%write-char #\,))
-            (%write-char #\})))
+          (association-list-p list))
+     (alist-to-json list))
+    ((and (eq *from* :jsown)
+          (eq (car list) :obj))
+     (alist-to-json (cdr list)))
     ((my-plist-p list)
-     (progn (%write-char #\{)
-            (loop for (key val next) on list by #'cddr
-                  do (%to-json (princ-to-string key))
-                  do (%write-char #\:)
-                  do (%to-json val)
-                  when next do (%write-char #\,))
-            (%write-char #\})))
-    (t
-     (progn (%write-char #\[)
-            (loop for (item next) on list
-                  do (%to-json item)
-                  when next do (%write-char #\,))
-            (%write-char #\])))))
+     (plist-to-json list))
+    (t (list-to-json list))))
+
+(defmethod %to-json ((sv simple-vector))
+  (%write-char #\[)
+  (loop with max = (1- (length sv))
+        for item across sv
+        for index from 0
+        do (%to-json item)
+        unless (= index max) do (%write-char #\,))
+  (%write-char #\]))
 
 (defmethod %to-json ((symbol symbol))
   (%to-json (symbol-name symbol)))
 
-(defmethod %to-json ((true (eql t)))
-  (declare (ignore true))
+(defmethod %to-json ((_ (eql t)))
   (%write-string "true"))
 
-(defmethod %to-json ((false (eql :false)))
-  (declare (ignore false))
+(defmethod %to-json ((_ (eql :false)))
   (%write-string "false"))
 
-(defmethod %to-json ((false (eql :null)))
-  (declare (ignore false))
+(defmethod %to-json ((_ (eql :null)))
   (%write-string "null"))
 
-(defmethod %to-json ((n (eql nil)))
-  (declare (ignore n))
+(defmethod %to-json ((_ (eql nil)))
   (%write-string "[]"))

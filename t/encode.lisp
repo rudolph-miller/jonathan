@@ -2,11 +2,10 @@
 (defpackage jonathan-test.encode
   (:use :cl
         :prove
-        :integral
         :jonathan.encode))
 (in-package :jonathan-test.encode)
 
-(plan 10)
+(plan 11)
 
 (diag "jonathan-test.encode")
 
@@ -47,10 +46,13 @@
     "{\"Rudolph\":\"Miller\"}"
     ":from :alist.")
 
+(is (to-json '(:obj (:|Rudolph| . "Miller")) :from :jsown)
+    "{\"Rudolph\":\"Miller\"}"
+    ":from :jsown.")
+
 (defclass user ()
-  ((id :type integer :primary-key t :initarg :id)
-   (name :type strign :initarg :name))
-  (:metaclass <dao-table-class>))
+  ((id :type integer :initarg :id)
+   (name :type string :initarg :name)))
 
 (defmethod %to-json ((user user))
   (%write-char #\{)
