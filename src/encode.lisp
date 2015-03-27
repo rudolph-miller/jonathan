@@ -6,7 +6,10 @@
                 :fast-write-byte
                 :make-output-buffer
                 :finish-output-buffer)
-  (:export :to-json))
+  (:export :to-json
+           :%to-json
+           :%write-char
+           :%write-string))
 (in-package :jonathan.encode)
 
 (declaim (optimize (speed 3) (safety 0) (debug 0)))
@@ -20,13 +23,15 @@
   (if *octet*
       (loop for c across string
             do (fast-write-byte (char-code c) *stream*))
-      (write-string string *stream*)))
+      (write-string string *stream*))
+  nil)
 
 (declaim (inline %write-char))
 (defun %write-char (char)
   (if *octet*
       (fast-write-byte (char-code char) *stream*)
-      (write-char char *stream*)))
+      (write-char char *stream*))
+  nil)
 
 (defun to-json (obj &key (octet *to-json-octet-default*))
   "Converting object to JSON String."

@@ -18,8 +18,7 @@ Using cl-cookie.util to write JSON parser.
 ```
 
 ## to-json
-  - can encode Property List into JSON string.
-  - restricts the definition of Property List.
+  - can encode retricted Property List into JSON string.
 
 ```Lisp
 (to-json '(:name :age :born :impls))
@@ -28,6 +27,29 @@ Using cl-cookie.util to write JSON parser.
 
 (to-json '(:name "Common Lisp" :born))
 ;; => "{\"NAME\":\"Common Lisp\",\"BORN\":[]}"
+```
+
+  - is customizable by `%to-json`, `%write-char` and `%write-string`.
+
+```Lisp
+(defclass user ()
+  ((id :type integer :initarg :id)
+   (name :type string :initarg :name))
+  (:metaclass <dao-table-class>))
+
+(defmethod %to-json ((user user))
+  (%write-char #\{)
+  (%to-json "id")
+  (%write-char #\:)
+  (%to-json (slot-value user 'id))
+  (%write-char #\,)
+  (%to-json "name")
+  (%write-char #\:)
+  (%to-json (slot-value user 'name))
+  (%write-char #\}))
+
+(to-json (make-instance 'user :id 1 :name "Rudolph"))
+;; => "{\"id\":1,\"name\":\"Rudolph\"}"
 ```
 
 ## parse
