@@ -52,8 +52,26 @@ Using cl-cookie.util to write JSON parser.
 ;; => "{\"id\":1,\"name\":\"Rudolph\"}"
 ```
 
+![Benchmark of to-json](./images/to-json.png)
+```Lisp
+(let ((data '(:obj ("HELLO" . "WORLD"))))
+  (time
+   (dotimes (_ 100000)
+     (jsown:to-json data))))
+;; => 0.25
+
+(let ((data '(:hello :world)))
+  (time
+   (dotimes (_ 100000)
+     (jonathan:to-json data))))
+;; => 0.126
+```
+
 ## parse
   - can decode JSON string into Property List or Association List specified by `:as`.
+
+## See Also
+ - [cl-cookie.util](https://github.com/fukamachi/cl-cookie/blob/master/src/util.lisp)
 
 ## Author
 
