@@ -1,5 +1,7 @@
 # Jonathan
 
+[![Build Status](https://travis-ci.org/Rudolph-Miller/jonathan.svg)](https://travis-ci.org/Rudolph-Miller/jonathan)
+
 JSON encoder and decoder.  
 Using cl-cookie.util to write JSON parser.
 
