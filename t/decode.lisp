@@ -29,21 +29,26 @@
            (if (my-plist-p ,target)
                (plist-alist ,target)
                ,target)
-           ":as :alist."))))
+           ":as :alist.")
+       (is (parse (to-json ,target) :as :jsown)
+           (if (my-plist-p ,target)
+               (cons :obj (plist-alist ,target))
+               ,target)
+           ":as :jsown."))))
 
-(parse-test "\"Rudolph\""
+(parse-test "Rudolph"
             "with string.")
 
-(parse-test "[\"Rudolph\",\"Miller\"]"
+(parse-test '("Rudolph" "Miller")
             "with list.")
 
-(parse-test "1"
+(parse-test 1
             "with integer.")
 
-(parse-test "-1"
+(parse-test -1
             "with negative.")
 
-(parse-test "0.1"
+(parse-test (/ 1 10)
             "with float.")
 
 (parse-test '(:Rudolph "Miller")

@@ -27,10 +27,13 @@
                (read-object ()
                  (skip-spaces)
                  (loop until (skip?-or-eof #\})
+                       for first = t
                        for key = (progn (advance) (read-string))
                        for value = (progn (skip-spaces) (advance) (skip-spaces) (dispatch))
                        do (skip?-with-spaces #\,)
-                       if (eq as :alist)
+                       when (and first (eq as :jsown))
+                         collecting (progn (setq first nil) :obj)
+                       if (or (eq as :alist) (eq as :jsown))
                          collecting (cons key value)
                        else
                          nconc (list (make-keyword key) value)))
