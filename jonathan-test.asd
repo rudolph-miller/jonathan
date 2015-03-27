@@ -7,7 +7,8 @@
   :author "Rudolph-Miller"
   :license ""
   :depends-on (:jonathan
-               :cl-test-more)
+               :integral
+               :prove)
   :components ((:module "t"
                 :components
                 ((:file "jonathan")

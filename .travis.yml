@@ -1,0 +1,16 @@
+language: common-lisp
+
+env:
+  matrix:
+    - LISP=sbcl
+    - LISP=ccl
+
+install:
+  # Install cl-travis.
+  - curl https://raw.githubusercontent.com/luismbo/cl-travis/master/install.sh | bash
+
+before_script:
+  - git clone -b optimize https://github.com/Rudolph-Miller/cl-cookie ~/lisp/cl-cookie
+
+script:
+  - cl -l prove -e '(or (prove:run :jonathan-test) (uiop:quit -1))'

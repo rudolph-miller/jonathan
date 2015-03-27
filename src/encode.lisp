@@ -6,7 +6,11 @@
                 :fast-write-byte
                 :make-output-buffer
                 :finish-output-buffer)
-  (:export :to-json
+  (:import-from :trivial-types
+                :association-list-p)
+  (:export :*octet-as-default*
+           :*from*
+           :to-json
            :%to-json
            :%write-char
            :%write-string))
@@ -14,9 +18,9 @@
 
 (declaim (optimize (speed 3) (safety 0) (debug 0)))
 
-(defvar *to-json-octet-default* nil)
-(defvar *stream* nil)
 (defvar *octet* nil)
+(defvar *from* nil)
+(defvar *stream* nil)
 
 (declaim (inline %write-string))
 (defun %write-string (string)
@@ -33,11 +37,13 @@
       (write-char char *stream*))
   nil)
 
-(defun to-json (obj &key (octet *to-json-octet-default*))
+(defun to-json (obj &key (octet *octet*) (from *from*))
   "Converting object to JSON String."
-  (let ((*stream* (if octet (make-output-buffer)
+  (let ((*stream* (if octet
+                      (make-output-buffer)
                       (make-string-output-stream)))
-        (*octet* octet))
+        (*octet* octet)
+        (*from* from))
     (%to-json obj)
     (if octet
         (finish-output-buffer *stream*)
@@ -64,19 +70,30 @@
   (%to-json (coerce ratio 'float)))
 
 (defmethod %to-json ((list list))
-  (if (my-plist-p list)
-      (progn (%write-char #\{)
-             (loop for (key val next) on list by #'cddr
-                   do (%to-json (princ-to-string key))
-                   do (%write-char #\:)
-                   do (%to-json val)
-                   when next do (%write-char #\,))
-             (%write-char #\}))
-      (progn (%write-char #\[)
-             (loop for (item next) on list
-                   do (%to-json item)
-                   when next do (%write-char #\,))
-             (%write-char #\]))))
+  (cond
+    ((and (eq *from* :alist)
+          (trivial-types:association-list-p list))
+     (progn (%write-char #\{)
+            (loop for (item rest) on list
+                  do (%to-json (princ-to-string (car item)))
+                  do (%write-char #\:)
+                  do (%to-json (cdr item))
+                  when rest do (%write-char #\,))
+            (%write-char #\})))
+    ((my-plist-p list)
+     (progn (%write-char #\{)
+            (loop for (key val next) on list by #'cddr
+                  do (%to-json (princ-to-string key))
+                  do (%write-char #\:)
+                  do (%to-json val)
+                  when next do (%write-char #\,))
+            (%write-char #\})))
+    (t
+     (progn (%write-char #\[)
+            (loop for (item next) on list
+                  do (%to-json item)
+                  when next do (%write-char #\,))
+            (%write-char #\])))))
 
 (defmethod %to-json ((symbol symbol))
   (%to-json (symbol-name symbol)))

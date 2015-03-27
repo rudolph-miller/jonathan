@@ -8,6 +8,7 @@
   :author "Rudolph-Miller"
   :license "MIT"
   :depends-on (:fast-io
+               :trivial-types
                :cl-cookie)
   :components ((:module "src"
                 :components
