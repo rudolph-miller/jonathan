@@ -26,12 +26,16 @@ Using cl-cookie.util to write JSON parser.
 (parse "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}"
        :as :alist)
 ;; => (("NAME" . "Common Lisp") ("BORN" . 1984) ("IMPLS" "SBCL" "CCL" "KCL"))
+
+(parse "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}"
+       :as :jsown)
+;; => (:obj ("NAME" . "Common Lisp") ("BORN" . 1984) ("IMPLS" "SBCL" "CCL" "KCL"))
 ```
 
 ## to-json
 - can encode Object into JSON format.
   - Rstricted Property List. (`:from :plist`)
-  - ssociation List. (`:from :alist`)
+  - Association List. (`:from :alist`)
   - Jsown Object. (`:from :jsown`)
 - can return not only string but also octets.
 
@@ -83,7 +87,10 @@ Using cl-cookie.util to write JSON parser.
 ```
 
 ## parse
-- can decode JSON string into Property List or Association List specified by `:as`.
+- can decode JSON format string into Object.
+  - Property List. (`:as :plist`)
+  - Association List. (`:as :alist`)
+  - Json Object. (`:as :jsown`)
 
 ## See Also
 - [cl-cookie.util](https://github.com/fukamachi/cl-cookie/blob/master/src/util.lisp)
