@@ -26,8 +26,8 @@ Using cl-cookie.util to write JSON parser.
 ```
 
 ## to-json
-  - can encode retricted Property List or Association List into JSON format.
-  - can return not only string but also octets.
+- can encode retricted Property List or Association List into JSON format.
+- can return not only string but also octets.
 
 ```Lisp
 (to-json '(:name :age :born :impls))
@@ -38,7 +38,7 @@ Using cl-cookie.util to write JSON parser.
 ;; => "{\"NAME\":\"Common Lisp\",\"BORN\":[]}"
 ```
 
-  - is customizable by `%to-json`, `%write-char` and `%write-string`.
+- is customizable by `%to-json`, `%write-char` and `%write-string`.
 
 ```Lisp
 (defclass user ()
@@ -77,14 +77,14 @@ Using cl-cookie.util to write JSON parser.
 ```
 
 ## parse
-  - can decode JSON string into Property List or Association List specified by `:as`.
+- can decode JSON string into Property List or Association List specified by `:as`.
 
 ## See Also
- - [cl-cookie.util](https://github.com/fukamachi/cl-cookie/blob/master/src/util.lisp)
+- [cl-cookie.util](https://github.com/fukamachi/cl-cookie/blob/master/src/util.lisp)
 
 ## Author
 
-* Rudolph-Miller
+- Rudolph-Miller
 
 ## Copyright
 
