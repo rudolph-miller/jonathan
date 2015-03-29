@@ -7,6 +7,7 @@
 (in-package :jonathan.decode)
 
 (defun parse (string &key (as :plist))
+  (declare (type simple-string string))
   (with-string-parsing (string)
     (macrolet ((skip-spaces ()
                  `(skip* #\Space))
@@ -23,6 +24,9 @@
                   ("{" (read-object))
                   ("\"" (read-string))
                   ("[" (read-array))
+                  ("true" t)
+                  ("false" nil)
+                  ("null" nil)
                   (otherwise (read-number))))
                (read-object ()
                  (skip-spaces)
@@ -38,18 +42,48 @@
                        else
                          nconc (list (make-keyword key) value)))
                (read-string ()
-                 (with-output-to-string (stream)
-                   (loop until (skip?-or-eof #\")
-                         do (write-char
-                             (the standard-char
-                                  (match-case
-                                   ("\\b" #\Backspace)
-                                   ("\\f" #\Newline)
-                                   ("\\n" #\Newline)
-                                   ("\\r" #\Return)
-                                   ("\\t" #\Tab)
-                                   (otherwise (prog1 (current) (advance*)))))
-                             stream))))
+                 (if (eofp)
+                     ""
+                     (let ((start (pos))
+                           (escaped-count 0))
+                       (declare (type fixnum start escaped-count))
+                       (loop when (char= (current) #\\)
+                               do (incf escaped-count)
+                                  (or (advance*) (return))
+                             while (and (advance*)
+                                        (char/= #\" (current))))
+                       (prog1
+                           (if (= escaped-count 0)
+                               (subseq string start (pos))
+                               (read-string-with-escaping start escaped-count))
+                         (skip? #\")))))
+               (read-string-with-escaping (start escaped-count)
+                 (declare (optimize (speed 3) (debug 0) (safety 0)))
+                 (loop with result = (make-array (- (pos) start escaped-count)
+                                                 :element-type 'character
+                                                 :adjustable nil)
+                       with result-index = 0
+                       with escaped-p
+                       for index from start below (pos)
+                       for char = (char string index)
+                       if escaped-p
+                         do (setf escaped-p nil)
+                            (setf (char result result-index)
+                                  (case char
+                                    (#\b #\Backspace)
+                                    (#\f #\Linefeed)
+                                    (#\n #\Linefeed)
+                                    (#\r #\Return)
+                                    (#\t #\Tab)
+                                    (t char)))
+                            (incf result-index)
+                       else
+                         if (char= char #\\)
+                           do (setf escaped-p t)
+                       else
+                         do (setf (char result result-index) char)
+                            (incf result-index)
+                       finally (return result)))
                (read-array ()
                  (skip-spaces)
                  (loop until (skip?-or-eof #\])
@@ -65,5 +99,6 @@
                          ((skip? #\.)
                           (the rational (+ num (the rational (read-number t)))))
                          (t (the fixnum num))))))))
+        (declare (inline read-string-with-escaping))
         (skip-spaces)
         (return-from parse (dispatch))))))

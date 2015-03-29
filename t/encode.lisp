@@ -5,9 +5,21 @@
         :jonathan.encode))
 (in-package :jonathan-test.encode)
 
-(plan 11)
-
 (diag "jonathan-test.encode")
+
+(plan 14)
+
+(is (to-json t)
+    "true"
+    "with T.")
+
+(is (to-json nil)
+    "[]"
+    "with NIL.")
+
+(is (to-json :false)
+    "false"
+    "with :false.")
 
 (is (to-json "Rudolph")
     "\"Rudolph\""

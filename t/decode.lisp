@@ -7,9 +7,9 @@
         :jonathan.decode))
 (in-package :jonathan-test.decode)
 
-(plan 6)
-
 (diag "jonathan-test.decode")
+
+(plan 10)
 
 (defun plist-alist (plist)
   (if (my-plist-p plist)
@@ -23,21 +23,42 @@
   `(progn
      (subtest ,comment
        (is (parse (to-json ,target))
-           ,target
+           (if (eq ,target :false)
+               nil
+               ,target)
            ":as :plist.")
        (is (parse (to-json ,target) :as :alist)
            (if (my-plist-p ,target)
                (plist-alist ,target)
-               ,target)
+               (if (eq ,target :false)
+                   nil
+                   ,target))
            ":as :alist.")
        (is (parse (to-json ,target) :as :jsown)
            (if (my-plist-p ,target)
-               (cons :obj (plist-alist ,target))
-               ,target)
+               (let ((alist (plist-alist ,target)))
+                 (if (null alist)
+                     nil
+                     (cons :obj alist)))
+               (if (eq ,target :false)
+                   nil
+                   ,target))
            ":as :jsown."))))
+
+(parse-test t
+            "with T.")
+
+(parse-test nil
+            "with NIL.")
+
+(parse-test :false
+            "with :false.")
 
 (parse-test "Rudolph"
             "with string.")
+
+(parse-test "Rudolph\\t"
+            "with #\Tab.")
 
 (parse-test '("Rudolph" "Miller")
             "with list.")
