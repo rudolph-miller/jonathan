@@ -2,12 +2,12 @@
 (defpackage jonathan.decode
   (:use :cl
         :jonathan.util
-        :cl-cookie.util)
+        :proc-parse)
   (:export :parse))
 (in-package :jonathan.decode)
 
 (defun parse (string &key (as :plist))
-  (with-vector-parsing (string :dont-raise-eof-error t :unsafely t)
+  (with-string-parsing (string)
     (macrolet ((skip-spaces ()
                  `(skip* #\Space))
                (skip?-with-spaces (char)
@@ -28,8 +28,8 @@
                  (skip-spaces)
                  (loop until (skip?-or-eof #\})
                        for first = t
-                       for key = (progn (advance) (read-string))
-                       for value = (progn (skip-spaces) (advance) (skip-spaces) (dispatch))
+                       for key = (progn (advance*) (read-string))
+                       for value = (progn (skip-spaces) (advance*) (skip-spaces) (dispatch))
                        do (skip?-with-spaces #\,)
                        when (and first (eq as :jsown))
                          collecting (progn (setq first nil) :obj)
@@ -48,7 +48,7 @@
                                    ("\\n" #\Newline)
                                    ("\\r" #\Return)
                                    ("\\t" #\Tab)
-                                   (otherwise (prog1 (current) (advance)))))
+                                   (otherwise (prog1 (current) (advance*)))))
                              stream))))
                (read-array ()
                  (skip-spaces)

@@ -9,7 +9,7 @@
   :license "MIT"
   :depends-on (:fast-io
                :trivial-types
-               :cl-cookie)
+               :proc-parse)
   :components ((:module "src"
                 :components
                 ((:file "jonathan" :depends-on ("encode" "decode"))
