@@ -133,7 +133,7 @@ JSON encoder and decoder.
 ```
 
 ## See Also
-- [cl-cookie.util](https://github.com/fukamachi/cl-cookie/blob/master/src/util.lisp)
+- [proc-parse](https://github.com/fukamachi/proc-parse)
 
 ## Author
 
