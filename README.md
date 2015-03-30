@@ -83,6 +83,12 @@ JSON encoder and decoder.
    (dotimes (_ 100000)
      (jonathan:to-json data))))
 ;; => 0.126
+
+(let ((data '(:obj ("HELLO" . "WORLD")))
+  (time
+   (dotimes (_ 100000)
+     (jonathan:to-json data :from :jsown))))
+;; => 0.119
 ```
 
 ## parse
