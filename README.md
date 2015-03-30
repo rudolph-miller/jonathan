@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/Rudolph-Miller/jonathan.svg)](https://travis-ci.org/Rudolph-Miller/jonathan)
 
 JSON encoder and decoder.  
+It's faster than [jsown](https://github.com/madnificent/jsown) - high performance Common Lisp json parser.
 
 ## Usage
 
