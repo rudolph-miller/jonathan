@@ -10,13 +10,16 @@ JSON encoder and decoder.
 (to-json '(:name "Common Lisp" :born 1984 :impls (SBCL KCL)))
 ;; => "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}"
 
-(to-json '(:name "Common Lisp" :born 1984 :impls (SBCL KCL)) :octet t)
+(to-json '(:name "Common Lisp" :born 1984 :impls (SBCL KCL))
+         :octet t)
 ;; => #(123 34 78 65 77 69 34 58 34 67 111 109 109 111 110 32 76 ...)
 
-(to-json '((:name . "Common Lisp") (:born . 1984) (:impls SBCL KCL)) :from :alist)
+(to-json '((:name . "Common Lisp") (:born . 1984) (:impls SBCL KCL))
+         :from :alist)
 ;; => "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}"
 
-(to-json '(:obj (:name . "Common Lisp") (:born . 1984) (:impls SBCL KCL)) :from :jsown)
+(to-json '(:obj (:name . "Common Lisp") (:born . 1984) (:impls SBCL KCL))
+         :from :jsown)
 ;; => "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}"
 
 (parse "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}")
