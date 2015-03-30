@@ -71,24 +71,31 @@ JSON encoder and decoder.
 ```
 
 ![Benchmark of to-json](./images/to-json.png)
-```Lisp
-(let ((data '(:obj ("HELLO" . "WORLD"))))
-  (time
-   (dotimes (_ 100000)
-     (jsown:to-json data))))
-;; => 0.25
 
+```Lisp
 (let ((data '(:hello :world)))
   (time
    (dotimes (_ 100000)
-     (jonathan:to-json data))))
+     (jonathan:to-json data :from :plist))))
 ;; => 0.126
 
-(let ((data '(:obj ("HELLO" . "WORLD")))
+(let ((data '(:obj ("HELLO" . "WORLD"))))
   (time
    (dotimes (_ 100000)
      (jonathan:to-json data :from :jsown))))
 ;; => 0.119
+
+(let ((data '(:obj ("HELLO" . "WORLD"))))
+  (time
+   (dotimes (_ 100000)
+     (jonathan:to-json data :octets t))))
+;; => 0.120
+
+(let ((data '(:obj ("HELLO" . "WORLD"))))
+  (time
+   (dotimes (_ 100000)
+     (jsown:to-json data))))
+;; => 0.26
 ```
 
 ## parse
@@ -96,6 +103,34 @@ JSON encoder and decoder.
   - Property List. (`:as :plist`)
   - Association List. (`:as :alist`)
   - Json Object. (`:as :jsown`)
+
+![Benchmark of parse](./images/parse.png)
+
+```Lisp
+(let ((s "{\"key1\":\"value\",\"key2\":1.1,\"key3\":[\"Hello\",1.2]}"))
+  (time
+   (dotimes (_ 100000)
+     (jonathan:parse s :as :plist))))
+;; => 0.266
+
+(let ((s "{\"key1\":\"value\",\"key2\":1.1,\"key3\":[\"Hello\",1.2]}"))
+  (time
+   (dotimes (_ 100000)
+     (jonathan:parse s :as :alist))))
+;; => 0.174
+
+(let ((s "{\"key1\":\"value\",\"key2\":1.1,\"key3\":[\"Hello\",1.2]}"))
+  (time
+   (dotimes (_ 100000)
+     (jonathan:parse s :as :jsown))))
+;; => 0.181
+
+(let ((s "{\"key1\":\"value\",\"key2\":1.1,\"key3\":[\"Hello\",1.2]}"))
+  (time
+   (dotimes (_ 100000)
+     (jsown:parse s))))
+;; => 0.204
+```
 
 ## See Also
 - [cl-cookie.util](https://github.com/fukamachi/cl-cookie/blob/master/src/util.lisp)

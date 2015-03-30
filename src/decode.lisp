@@ -31,7 +31,7 @@
                (read-object ()
                  (skip-spaces)
                  (loop until (skip?-or-eof #\})
-                       for first = t
+                       with first = t
                        for key = (progn (advance*) (read-string))
                        for value = (progn (skip-spaces) (advance*) (skip-spaces) (dispatch))
                        do (skip?-with-spaces #\,)
