@@ -93,12 +93,13 @@
                  (let ((start (the fixnum (pos))))
                    (bind (num-str (skip-while integer-char-p))
                      (let ((num (the fixnum (or (parse-integer num-str :junk-allowed t) 0))))
-                       (cond
-                         (rest-p
-                          (the rational (/ num (the fixnum (expt 10 (- (pos) start))))))
-                         ((skip? #\.)
-                          (the rational (+ num (the rational (read-number t)))))
-                         (t (the fixnum num))))))))
+                       (return-from read-number
+                         (cond
+                           (rest-p
+                            (the rational (/ num (the fixnum (expt 10 (- (pos) start))))))
+                           ((skip? #\.)
+                            (the rational (+ num (the rational (read-number t)))))
+                           (t (the fixnum num)))))))))
         (declare (inline read-string-with-escaping))
         (skip-spaces)
         (return-from parse (dispatch))))))
