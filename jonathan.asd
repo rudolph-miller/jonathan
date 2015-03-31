@@ -13,7 +13,8 @@
                :proc-parse)
   :components ((:module "src"
                 :components
-                ((:file "jonathan" :depends-on ("encode" "decode"))
+                ((:file "jonathan" :depends-on ("encode" "decode" "helper"))
+                 (:file "helper" :depends-on ("encode" "decode"))
                  (:file "encode" :depends-on ("util"))
                  (:file "decode" :depends-on ("util"))
                  (:file "util"))))

@@ -13,7 +13,8 @@
                 ((:file "jonathan")
                  (:test-file "util")
                  (:test-file "encode")
-                 (:test-file "decode"))))
+                 (:test-file "decode")
+                 (:test-file "helper"))))
 
   :defsystem-depends-on (:prove-asdf)
   :perform (test-op :after (op c)

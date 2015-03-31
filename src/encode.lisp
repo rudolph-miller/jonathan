@@ -10,6 +10,7 @@
                 :association-list-p)
   (:export :*octet-as-default*
            :*from*
+           :*stream*
            :to-json
            :%to-json
            :%write-char
@@ -105,7 +106,9 @@
     ((and (eq *from* :jsown)
           (eq (car list) :obj))
      (alist-to-json (cdr list)))
-    ((my-plist-p list)
+    ((and (or (eq *from* :plist)
+              (null *from*))
+          (my-plist-p list))
      (plist-to-json list))
     (t (list-to-json list))))
 
