@@ -83,7 +83,7 @@
                     (list :key value)))
         (encoder2 (compile-encoder (:from :alist) (value)
                     `(("key" . ,value))))
-        (encoder3 (compile-encoder (:octet t) (value)
+        (encoder3 (compile-encoder (:octets t) (value)
                     (list :key value))))
 
     (is (funcall encoder1 "value")
@@ -96,7 +96,7 @@
 
     (is (funcall encoder3 "value")
         #(123 34 75 69 89 34 58 34 118 97 108 117 101 34 125)
-        "with :octet T."
+        "with :octets T."
         :test #'equalp)))
 
 (finalize)

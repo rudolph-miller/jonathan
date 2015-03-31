@@ -49,7 +49,7 @@
     "{\"Rudolph\":\"Miller\"}"
     "with plist.")
 
-(is (to-json '(:|Rudolph| "Miller") :octet t)
+(is (to-json '(:|Rudolph| "Miller") :octets t)
     #(123 34 82 117 100 111 108 112 104 34 58 34 77 105 108 108 101 114 34 125)
     :test #'equalp
     ":octet T.")

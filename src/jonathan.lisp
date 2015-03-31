@@ -2,7 +2,7 @@
 (defpackage jonathan
   (:use :cl)
   (:import-from :jonathan.encode
-                :*octet*
+                :*octets*
                 :*from*
                 :to-json
                 :%to-json
@@ -21,7 +21,7 @@
                 :with-output
                 :with-output-to-string*
                 :compile-encoder)
-  (:export :*octet*
+  (:export :*octets*
            :*from*
            :to-json
            :%to-json

@@ -8,7 +8,7 @@
                 :finish-output-buffer)
   (:import-from :trivial-types
                 :association-list-p)
-  (:export :*octet*
+  (:export :*octets*
            :*from*
            :*stream*
            :to-json
@@ -19,13 +19,13 @@
 
 (declaim (optimize (speed 3) (safety 0) (debug 0)))
 
-(defvar *octet* nil)
+(defvar *octets* nil)
 (defvar *from* nil)
 (defvar *stream* nil)
 
 (declaim (inline %write-string))
 (defun %write-string (string)
-  (if *octet*
+  (if *octets*
       (loop for c across string
             do (fast-write-byte (char-code c) *stream*))
       (write-string string *stream*))
@@ -33,7 +33,7 @@
 
 (declaim (inline %write-char))
 (defun %write-char (char)
-  (if *octet*
+  (if *octets*
       (fast-write-byte (char-code char) *stream*)
       (write-char char *stream*))
   nil)
@@ -66,15 +66,15 @@
         when next do (%write-char #\,))
   (%write-char #\]))
 
-(defun to-json (obj &key (octet *octet*) (from *from*))
+(defun to-json (obj &key (octets *octets*) (from *from*))
   "Converting object to JSON String."
-  (let ((*stream* (if octet
+  (let ((*stream* (if octets
                       (make-output-buffer)
                       (make-string-output-stream)))
-        (*octet* octet)
+        (*octets* octets)
         (*from* from))
     (%to-json obj)
-    (if octet
+    (if octets
         (finish-output-buffer *stream*)
         (get-output-stream-string *stream*))))
 

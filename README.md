@@ -12,7 +12,7 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
 ;; => "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}"
 
 (to-json '(:name "Common Lisp" :born 1984 :impls (SBCL KCL))
-         :octet t)
+         :octets t)
 ;; => #(123 34 78 65 77 69 34 58 34 67 111 109 109 111 110 32 76 ...)
 
 (to-json '((:name . "Common Lisp") (:born . 1984) (:impls SBCL KCL))
@@ -91,7 +91,7 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
 (let ((data '(:obj ("HELLO" . "WORLD"))))
   (time
    (dotimes (_ 100000)
-     (jonathan:to-json data :octets t))))
+     (jonathan:to-json data :from :jsown :octets t))))
 ;; => 0.120
 
 (let ((data '(:obj ("HELLO" . "WORLD"))))
@@ -99,6 +99,13 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
    (dotimes (_ 100000)
      (jsown:to-json data))))
 ;; => 0.26
+
+(let* ((data '(:obj ("HELLO" . "WORLD")))
+       (encoder (jonathan:compile-encoder (:from :jsown) () data)))
+  (time
+   (dotimes (_ 100000)
+     (funcall encoder))))
+;; => 0.015 (encoder just writes strings.)
 ```
 
 ## parse
@@ -168,7 +175,7 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
 (funcall * "Rudolph")
 ;; => "{\"name\":\"Rudolph\"}"
 
-(compile-encoder (:octet t) (name)
+(compile-encoder (:octets t) (name)
   (list :name name))
 ;; => #<FUNCTION (LAMBDA (name))>
 

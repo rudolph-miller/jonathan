@@ -2,7 +2,8 @@
 (defpackage jonathan.helper
   (:use :cl
         :jonathan.encode)
-  (:import-from :babel)
+  (:import-from :babel
+                :string-to-octets)
   (:import-from :fast-io
                 :fast-write-sequence
                 :make-output-buffer
@@ -87,7 +88,7 @@
      (with-output (stream)
        ,@body)))
 
-(defmacro compile-encoder ((&key octet from) (&rest args) &body body)
+(defmacro compile-encoder ((&key octets from) (&rest args) &body body)
   (let ((lambda-list-hash (make-hash-table :test #'equal)))
     (map nil
          (lambda (sym)
@@ -126,18 +127,17 @@
                    args)
          (eval
           `(lambda (,@',args)
-             (let ((*stream* ,(if ,octet
+             (let ((*stream* ,(if ,octets
                                   (make-output-buffer)
                                   (make-string-output-stream)))
-                   (*octet* ,,octet))
+                   (*octets* ,,octets))
                ,@(loop for item in result
                        if (stringp item)
-                         collecting (if ,octet
-                                        `(fast-write-sequence ,(babel:string-to-octets item) *stream*)
+                         collecting (if ,octets
+                                        `(fast-write-sequence ,(string-to-octets item) *stream*)
                                         `(write-string ,item *stream*))
                        else
                          collecting `(%to-json ,item))
-               ,(if ,octet
+               ,(if ,octets
                     `(finish-output-buffer *stream*)
                     `(get-output-stream-string *stream*)))))))))
-
