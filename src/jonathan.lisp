@@ -19,14 +19,15 @@
                 :with-array
                 :write-item
                 :with-output
-                :with-output-to-string*)
+                :with-output-to-string*
+                :compile-encoder)
   (:export :*octet*
            :*from*
            :to-json
            :%to-json
            :%write-char
            :%write-string
-           :<jonathan-unexpected-eof>
+           :<jonathan-unexpected-eof-error>
            :parse
            :write-key
            :write-value
@@ -35,5 +36,6 @@
            :with-array
            :write-item
            :with-output
-           :with-output-to-string*))
+           :with-output-to-string*
+           :compile-encoder))
 (in-package :jonathan)

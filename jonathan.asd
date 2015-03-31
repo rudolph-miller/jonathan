@@ -10,7 +10,8 @@
   :depends-on (:fast-io
                :trivial-types
                :babel
-               :proc-parse)
+               :proc-parse
+               :cl-ppcre)
   :components ((:module "src"
                 :components
                 ((:file "jonathan" :depends-on ("encode" "decode" "helper"))

@@ -1,7 +1,16 @@
 (in-package :cl-user)
 (defpackage jonathan.helper
   (:use :cl
-   :jonathan.encode)
+        :jonathan.encode)
+  (:import-from :babel)
+  (:import-from :fast-io
+                :fast-write-sequence
+                :make-output-buffer
+                :finish-output-buffer)
+  (:import-from :ppcre
+                :scan)
+  (:import-from :alexandria
+                :ensure-list)
   (:export :write-key
            :write-value
            :write-key-value
@@ -9,8 +18,11 @@
            :with-array
            :write-item
            :with-output
-           :with-output-to-string*))
+           :with-output-to-string*
+           :compile-encoder))
 (in-package :jonathan.helper)
+
+(defparameter *compile-encoder-prefix* "jonathan-encoder")
 
 (defun with-macro-p (list)
   (and (consp list)
@@ -74,3 +86,58 @@
   `(with-output-to-string (stream)
      (with-output (stream)
        ,@body)))
+
+(defmacro compile-encoder ((&key octet from) (&rest args) &body body)
+  (let ((lambda-list-hash (make-hash-table :test #'equal)))
+    (map nil
+         (lambda (sym)
+           (let ((genstr (format nil "~a~a" *compile-encoder-prefix* (random 1000000))))
+             (setf (gethash (symbol-name sym) lambda-list-hash)
+                   genstr)
+             (setf (gethash genstr lambda-list-hash)
+                   (symbol-name sym))))
+                   
+         args)
+    `(let ,(mapcar #'(lambda (sym)
+                       (list sym
+                             (gethash (symbol-name sym) lambda-list-hash)))
+                   args)
+       (locally
+           (declare #+sbcl(sb-ext:muffle-conditions sb-kernel:redefinition-warning))
+         (handler-bind
+             (#+sbcl(sb-kernel:redefinition-warning #'muffle-warning))
+           ,@(mapcar #'(lambda (sym)
+                         `(defmethod %to-json ((item (eql ,sym)))
+                            (%write-string
+                             ,(gethash (symbol-name sym) lambda-list-hash))))
+                     args)))
+       (let ((result (list (to-json (progn ,@body) :from ,from))))
+         ,@(mapcar #'(lambda (sym)
+                       `(setq result
+                              (loop for item in result
+                                    when (stringp item)
+                                      do (multiple-value-bind (start end) (scan ,(gethash (symbol-name sym) lambda-list-hash) item)
+                                           (when (and start end)
+                                             (setf item
+                                                   (list (subseq item 0 start)
+                                                         ',sym
+                                                         (subseq item end)))))
+                                    nconc (ensure-list item))))
+                   args)
+         (eval
+          `(lambda (,@',args)
+             (let ((*stream* ,(if ,octet
+                                  (make-output-buffer)
+                                  (make-string-output-stream)))
+                   (*octet* ,,octet))
+               ,@(loop for item in result
+                       if (stringp item)
+                         collecting (if ,octet
+                                        `(fast-write-sequence ,(babel:string-to-octets item) *stream*)
+                                        `(write-string ,item *stream*))
+                       else
+                         collecting `(%to-json ,item))
+               ,(if ,octet
+                    `(finish-output-buffer *stream*)
+                    `(get-output-stream-string *stream*)))))))))
+

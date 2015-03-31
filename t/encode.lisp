@@ -2,7 +2,7 @@
 (defpackage jonathan-test.encode
   (:use :cl
         :prove
-        :jonathan.encode))
+        :jonathan))
 (in-package :jonathan-test.encode)
 
 (diag "jonathan-test.encode")

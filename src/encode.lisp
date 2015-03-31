@@ -8,7 +8,7 @@
                 :finish-output-buffer)
   (:import-from :trivial-types
                 :association-list-p)
-  (:export :*octet-as-default*
+  (:export :*octet*
            :*from*
            :*stream*
            :to-json

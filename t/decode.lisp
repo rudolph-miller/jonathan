@@ -3,8 +3,7 @@
   (:use :cl
         :prove
         :jonathan.util
-        :jonathan.encode
-        :jonathan.decode))
+        :jonathan))
 (in-package :jonathan-test.decode)
 
 (diag "jonathan-test.decode")

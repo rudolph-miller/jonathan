@@ -23,6 +23,11 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
          :from :jsown)
 ;; => "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}"
 
+(let ((encoder (compile-encoder (:from :alist) (name)
+                 `(("name" . ,name)))))
+  (funcall encoder "Rudolph"))
+;; => "{\"name\":\"Rudolph\"}"
+
 (parse "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}")
 ;; => (:NAME "Common Lisp" :BORN 1984 :IMPLS ("SBCL" "CCL" "KCL"))
 
@@ -60,15 +65,9 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
    (name :type string :initarg :name)))
 
 (defmethod %to-json ((user user))
-  (%write-char #\{)
-  (%to-json "id")
-  (%write-char #\:)
-  (%to-json (slot-value user 'id))
-  (%write-char #\,)
-  (%to-json "name")
-  (%write-char #\:)
-  (%to-json (slot-value user 'name))
-  (%write-char #\}))
+  (with-object
+    (write-key-value "id" (slot-value user 'id))
+    (write-key-value "name" (slot-value user 'name))))
 
 (to-json (make-instance 'user :id 1 :name "Rudolph"))
 ;; => "{\"id\":1,\"name\":\"Rudolph\"}"
@@ -146,6 +145,89 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
    (dotimes (_ 100000)
      (jsown:parse s))))
 ;; => 0.204
+```
+
+## Helper
+
+### compile-encoder
+
+- can compile encoder.
+
+```Lisp
+(compile-encoder () (name)
+  (list :name name))
+;; => #<FUNCTION (LAMBDA (name))>
+
+(funcall * "Rudolph")
+;; => "{\"NAME\":\"Rudolph\"}"
+
+(compile-encoder (:from :alist) (name)
+  `(("name" . ,name)))
+;; => #<FUNCTION (LAMBDA (name))>
+
+(funcall * "Rudolph")
+;; => "{\"name\":\"Rudolph\"}"
+
+(compile-encoder (:octet t) (name)
+  (list :name name))
+;; => #<FUNCTION (LAMBDA (name))>
+
+(funcall * "Rudolph")
+;; => #(123 34 75 69 89 49 ...)
+```
+
+### with-object
+
+```Lisp
+(defclass user ()
+  ((id :initarg :id)
+   (name :initarg :name)))
+   
+(defmethod %to-json ((user user))
+  (with-object
+    (write-key "id")
+    (write-value (slot-value user 'id))
+    (write-key-value "name" (slot-value user 'name))))
+
+(to-json (make-instance 'user :id 1 :name "Rudolph"))
+;; => "{\"id\":1,\"name\":\"Rudolph\"}"
+```
+
+### with-array
+
+```Lisp
+(defclass user ()
+  ((id :initarg :id)
+   (name :initarg :name)))
+   
+(defmethod %to-json ((user user))
+  (with-array
+    (write-item "id")
+    (write-item (slot-value user 'id))
+    (write-item "name")
+    (write-item (slot-value user 'name))))
+
+(to-json (make-instance 'user :id 1 :name "Rudolph"))
+;; => "[\"id\",1,\"name\",\"Rudolph\"]"
+```
+
+### with-output
+
+```Lisp
+(with-output-to-string (stream)
+  (with-output (stream)
+    (with-object
+      (write-key-value "key" "value"))))
+;; => "{\"key\":\"value\"}"
+```
+
+### with-output-to-string*
+
+```Lisp
+(with-output-to-string*
+  (with-object
+    (write-key-value "key" "value"))))
+;; => "{\"key\":\"value\"}"
 ```
 
 ## See Also
