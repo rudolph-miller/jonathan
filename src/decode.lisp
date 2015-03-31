@@ -3,12 +3,20 @@
   (:use :cl
         :jonathan.util
         :proc-parse)
-  (:export :parse))
+  (:export :<jonathan-unexpected-eof-error>
+           :parse))
 (in-package :jonathan.decode)
 
-(defun parse (string &key (as :plist))
+(define-condition <jonathan-unexpected-eof-error> (simple-error)
+  ((object :initarg :object))
+  (:report
+   (lambda (condition stream)
+     (with-slots ((object object)) condition
+       (format stream "Unexpected EOF found:~%~a~%" object)))))
+
+(defun parse (string &key (as :plist) junk-allowed)
   (declare (type simple-string string))
-  (with-string-parsing (string)
+  (with-vector-parsing (string)
     (macrolet ((skip-spaces ()
                  `(skip* #\Space))
                (skip?-with-spaces (char)
@@ -17,7 +25,10 @@
                     (skip? ,char)
                     (skip-spaces)))
                (skip?-or-eof (char)
-                 `(or (skip? ,char) (eofp))))
+                 `(or (skip? ,char) (and (eofp)
+                                         (or junk-allowed
+                                             (error '<jonathan-unexpected-eof-error>
+                                                    :object string))))))
       (labels ((dispatch ()
                  (skip-spaces)
                  (match-case
@@ -56,7 +67,7 @@
                            (if (= escaped-count 0)
                                (subseq string start (pos))
                                (parse-string-with-escaping start escaped-count))
-                         (skip? #\")))))
+                         (skip?-or-eof #\")))))
                (parse-string-with-escaping (start escaped-count)
                  (declare (optimize (speed 3) (debug 0) (safety 0)))
                  (loop with result = (make-array (- (pos) start escaped-count)

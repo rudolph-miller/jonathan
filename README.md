@@ -107,6 +107,18 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
   - Property List. (`:as :plist`)
   - Association List. (`:as :alist`)
   - Json Object. (`:as :jsown`)
+- can allow junked JSON format string (`:junk-allowed t`)
+
+```Lisp
+(parse "{\"key\":\"value\"}")
+;; => (:|key| "value")
+
+(parse "{\"key\":\"value\"")
+;; => raise <jonathan-unexpected-eof>.
+
+(parse "{\"key\":\"value\"" :junk-allowed t)
+;; => (:|key| "value")
+```
 
 ![Benchmark of parse](./images/parse.png)
 

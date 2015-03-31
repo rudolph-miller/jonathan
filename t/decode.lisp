@@ -9,7 +9,7 @@
 
 (diag "jonathan-test.decode")
 
-(plan 10)
+(plan 12)
 
 (defun plist-alist (plist)
   (if (my-plist-p plist)
@@ -74,5 +74,14 @@
 
 (parse-test '(:Rudolph "Miller")
             "with object.")
+
+(subtest "<jonathan-unexpected-eof>"
+  (is-error (parse "{\key\":\"value\"")
+            '<jonathan-unexpected-eof-error>
+            "Parse can raise <jonathan-unexpected-eof> with incomplete JSON foramt string."))
+
+(subtest ":junk-allowed t"
+  (ok (parse "{\key\":\"value\"" :junk-allowed t)
+      "can allow incomplete JSON foramt string."))
 
 (finalize)

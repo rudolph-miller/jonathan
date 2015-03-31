@@ -9,6 +9,7 @@
   :license "MIT"
   :depends-on (:fast-io
                :trivial-types
+               :babel
                :proc-parse)
   :components ((:module "src"
                 :components
