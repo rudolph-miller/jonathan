@@ -97,6 +97,18 @@
     (is (funcall encoder3 "value")
         #(123 34 75 69 89 34 58 34 118 97 108 117 101 34 125)
         "with :octets T."
-        :test #'equalp)))
+        :test #'equalp)
+
+    (is-error (eval '(compile-encoder () (value value)))
+              'simple-error
+              "can raise the error with duplicate variables.")
+
+    (is-error (eval '(compile-encoder () ("value")))
+              'simple-error
+              "can raise the error with non-symbol in lambda-list.")
+
+    (is-error (eval '(compile-encoder () (:value)))
+              'simple-error
+              "can raise the error with keyword in lambda-list.")))
 
 (finalize)
