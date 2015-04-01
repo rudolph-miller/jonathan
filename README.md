@@ -38,6 +38,10 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
 (parse "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}"
        :as :jsown)
 ;; => (:obj ("NAME" . "Common Lisp") ("BORN" . 1984) ("IMPLS" "SBCL" "CCL" "KCL"))
+
+(parse "{\"NAME\":\"Common Lisp\",\"BORN\":1984,\"IMPLS\":[\"SBCL\",\"KCL\"]}"
+       :as :hash-table)
+;; => #<HASH-TABLE :TEST EQUAL :COUNT 3>
 ```
 
 ## to-json
@@ -120,6 +124,7 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
   - Property List. (`:as :plist`)
   - Association List. (`:as :alist`)
   - Json Object. (`:as :jsown`)
+  - Hash Table. (`:as :hash-table`)
 - can allow junked JSON format string (`:junk-allowed t`)
 - can customize `*null-value*`, `*false-value*` and `*empty-array-value*`.
 

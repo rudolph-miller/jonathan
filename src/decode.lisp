@@ -50,17 +50,27 @@
                                  (read-number)))))
                (read-object ()
                  (skip-spaces)
-                 (loop until (skip?-or-eof #\})
+                 (loop until (and (skip?-or-eof #\})
+                                  (or (when (eq as :hash-table)
+                                        (return-from read-object hash-table))
+                                      t))
                        with first = t
+                       with hash-table = nil
                        for key = (progn (advance*) (read-string))
                        for value = (progn (skip-spaces) (advance*) (skip-spaces) (dispatch))
+                       when (and first (eq as :hash-table))
+                         do (setq first nil)
+                            (setq hash-table (make-hash-table :test #'equal))
                        do (skip?-with-spaces #\,)
                        when (and first (eq as :jsown))
                          collecting (progn (setq first nil) :obj)
                        if (or (eq as :alist) (eq as :jsown))
                          collecting (cons key value)
                        else
-                         nconc (list (make-keyword key) value)))
+                         if (eq as :hash-table)
+                           do (setf (gethash key hash-table) value)
+                       else
+                           nconc (list (make-keyword key) value)))
                (read-string ()
                  (if (eofp)
                      ""

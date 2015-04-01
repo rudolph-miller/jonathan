@@ -3,7 +3,9 @@
   (:use :cl
         :prove
         :jonathan.util
-        :jonathan))
+        :jonathan)
+  (:import-from :alexandria
+                :plist-hash-table))
 (in-package :jonathan-test.decode)
 
 (diag "jonathan-test.decode")
@@ -55,7 +57,23 @@
                  (t (if (null ,target)
                         *empty-array-value*
                         ,target))))
-           ":as :jsown."))))
+           ":as :jsown.")
+       (is (parse (to-json ,target) :as :hash-table)
+           (if (my-plist-p ,target)
+               (if (null ,target)
+                   *empty-array-value*
+                   (loop with result = (make-hash-table :test #'equal)
+                         for (key value) on ,target by #'cddr
+                         do (setf (gethash (symbol-name key) result) value)
+                         finally (return result)))
+               (case ,target
+                 (:false *false-value*)
+                 (:null *null-value*)
+                 (t (if (null ,target)
+                        *empty-array-value*
+                        ,target))))
+           ":as :hash-table."
+           :test #'equalp))))
 
 (parse-test t
             "with T.")
