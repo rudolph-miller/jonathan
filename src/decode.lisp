@@ -3,9 +3,16 @@
   (:use :cl
         :jonathan.util
         :proc-parse)
-  (:export :<jonathan-unexpected-eof-error>
+  (:export :*false-value*
+           :*null-value*
+           :*empty-array-value*
+           :<jonathan-unexpected-eof-error>
            :parse))
 (in-package :jonathan.decode)
+
+(defvar *false-value* nil)
+(defvar *null-value* nil)
+(defvar *empty-array-value* nil)
 
 (define-condition <jonathan-unexpected-eof-error> (simple-error)
   ((object :initarg :object))
@@ -36,8 +43,8 @@
                   ("\"" (read-string))
                   ("[" (read-array))
                   ("true" t)
-                  ("false" nil)
-                  ("null" nil)
+                  ("false" *false-value*)
+                  ("null" *null-value*)
                   (otherwise (if (eofp)
                                  (return-from dispatch)
                                  (read-number)))))
@@ -97,9 +104,11 @@
                        finally (return result)))
                (read-array ()
                  (skip-spaces)
-                 (loop until (skip?-or-eof #\])
-                       collect (prog1 (dispatch)
-                                 (skip?-with-spaces #\,))))
+                 (when (skip?-or-eof #\])
+                   (return-from read-array *empty-array-value*))
+                 (loop collect (prog1 (dispatch)
+                                 (skip?-with-spaces #\,))
+                       until (skip?-or-eof #\])))
                (read-number (&optional rest-p)
                  (let ((start (the fixnum (pos))))
                    (bind (num-str (skip-while integer-char-p))

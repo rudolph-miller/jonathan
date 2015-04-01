@@ -114,6 +114,7 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
   - Association List. (`:as :alist`)
   - Json Object. (`:as :jsown`)
 - can allow junked JSON format string (`:junk-allowed t`)
+- can customize `*null-value*`, `*false-value*` and `*empty-array-value*`.
 
 ```Lisp
 (parse "{\"key\":\"value\"}")
@@ -124,6 +125,12 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
 
 (parse "{\"key\":\"value\"" :junk-allowed t)
 ;; => (:|key| "value")
+
+(let ((*null-value* :null)
+      (*false-value* :false)
+      (*empty-array-value* :[]))
+  (parse "{\"null\":null,\"false\":false,\"empty\":[]}"))
+;; => (:|null| :NULL :|false| :FALSE :|empty| :[])
 ```
 
 ![Benchmark of parse](./images/parse.png)

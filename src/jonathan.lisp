@@ -9,6 +9,9 @@
                 :%write-char
                 :%write-string)
   (:import-from :jonathan.decode
+                :*false-value*
+                :*null-value*
+                :*empty-array-value*
                 :<jonathan-unexpected-eof-error>
                 :parse)
   (:import-from :jonathan.helper
@@ -27,6 +30,9 @@
            :%to-json
            :%write-char
            :%write-string
+           :*false-value*
+           :*null-value*
+           :*empty-array-value*
            :<jonathan-unexpected-eof-error>
            :parse
            :write-key

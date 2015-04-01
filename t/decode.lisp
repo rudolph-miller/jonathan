@@ -8,40 +8,53 @@
 
 (diag "jonathan-test.decode")
 
-(plan 12)
+(plan 13)
 
 (defun plist-alist (plist)
   (if (my-plist-p plist)
-      (mapcar #'(lambda (item)
-                  (cons (symbol-name (car item))
-                        (plist-alist (cdr item))))
-              (alexandria:plist-alist plist))
+      (if (null plist)
+          *empty-array-value*
+          (mapcar #'(lambda (item)
+                      (cons (symbol-name (car item))
+                            (plist-alist (cdr item))))
+                  (alexandria:plist-alist plist)))
       plist))
 
 (defmacro parse-test (target comment)
-  `(progn
-     (subtest ,comment
+  `(subtest ,comment
+     (let ((*false-value* :false)
+           (*null-value* :null)
+           (*empty-array-value* :[]))
        (is (parse (to-json ,target))
-           (if (eq ,target :false)
-               nil
-               ,target)
+           (case ,target
+             (:false *false-value*)
+             (:null *null-value*)
+             (t (if (null ,target)
+                    *empty-array-value*
+                    ,target)))
            ":as :plist.")
        (is (parse (to-json ,target) :as :alist)
            (if (my-plist-p ,target)
                (plist-alist ,target)
-               (if (eq ,target :false)
-                   nil
-                   ,target))
+               (case ,target
+                 (:false *false-value*)
+                 (:null *null-value*)
+                 (t (if (null ,target)
+                        *empty-array-value*
+                        ,target))))
            ":as :alist.")
        (is (parse (to-json ,target) :as :jsown)
            (if (my-plist-p ,target)
                (let ((alist (plist-alist ,target)))
-                 (if (null alist)
-                     nil
+                 (if (eq alist *empty-array-value*)
+                     *empty-array-value*
                      (cons :obj alist)))
-               (if (eq ,target :false)
-                   nil
-                   ,target))
+               (case ,target
+                 (:false *false-value*)
+                 (:null *null-value*)
+                 (t (if (null ,target)
+                        *empty-array-value*
+                        ,target))))
            ":as :jsown."))))
 
 (parse-test t
@@ -52,6 +65,9 @@
 
 (parse-test :false
             "with :false.")
+
+(parse-test :null
+            "with :null.")
 
 (parse-test "Rudolph"
             "with string.")
