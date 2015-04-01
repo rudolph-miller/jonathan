@@ -76,36 +76,37 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
 ![Benchmark of to-json](./images/to-json.png)
 
 ```Lisp
-(let ((data '(:hello :world)))
+(let ((post (compile-encoder () (text)
+               (list :|channel| "lisp-alien"
+                     :|username| "alien-bot"
+                     :|text| text
+                     :|icon_url| "http://www.lisperati.com/lisplogo_warning2_256.png"))))
   (time
    (dotimes (_ 100000)
-     (jonathan:to-json data :from :plist))))
-;; => 0.126
+     (funcall post "Post from Alien!"))))
+;; => 0.106
 
-(let ((data '(:obj ("HELLO" . "WORLD"))))
+(flet ((post (text)
+         (jonathan:to-json
+               (list :|channel| "lisp-alien"
+                     :|username| "alien-bot"
+                     :|text| text
+                     :|icon_url| "http://www.lisperati.com/lisplogo_warning2_256.png"))))
   (time
    (dotimes (_ 100000)
-     (jonathan:to-json data :from :jsown))))
-;; => 0.119
+     (post "Post from Alien!"))))
+;; => 0.604
 
-(let ((data '(:obj ("HELLO" . "WORLD"))))
+(flet ((post (text)
+         (jsown:to-json
+          `(:obj (:|channel| . "lisp-alien")
+                 (:|username| . "alien-bot")
+                 (:|text| . ,text)
+                 (:|icon_url| . "http://www.lisperati.com/lisplogo_warning2_256.png")))))
   (time
    (dotimes (_ 100000)
-     (jonathan:to-json data :from :jsown :octets t))))
-;; => 0.120
-
-(let ((data '(:obj ("HELLO" . "WORLD"))))
-  (time
-   (dotimes (_ 100000)
-     (jsown:to-json data))))
-;; => 0.26
-
-(let* ((data '(:obj ("HELLO" . "WORLD")))
-       (encoder (jonathan:compile-encoder (:from :jsown) () data)))
-  (time
-   (dotimes (_ 100000)
-     (funcall encoder))))
-;; => 0.015 (encoder just writes strings.)
+     (post "Post from Alien!"))))
+;; => 1.117
 ```
 
 ## parse
@@ -136,12 +137,6 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
 ![Benchmark of parse](./images/parse.png)
 
 ```Lisp
-(let ((s "{\"key1\":\"value\",\"key2\":1.1,\"key3\":[\"Hello\",1.2]}"))
-  (time
-   (dotimes (_ 100000)
-     (jonathan:parse s :as :plist))))
-;; => 0.266
-
 (let ((s "{\"key1\":\"value\",\"key2\":1.1,\"key3\":[\"Hello\",1.2]}"))
   (time
    (dotimes (_ 100000)
