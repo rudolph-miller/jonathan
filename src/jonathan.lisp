@@ -4,6 +4,13 @@
   (:import-from :jonathan.encode
                 :*octets*
                 :*from*
+                :write-key
+                :write-value
+                :write-key-value
+                :with-object
+                :with-array
+                :write-item
+                :with-output
                 :to-json
                 :%to-json
                 :%write-char
@@ -15,13 +22,6 @@
                 :<jonathan-unexpected-eof-error>
                 :parse)
   (:import-from :jonathan.helper
-                :write-key
-                :write-value
-                :write-key-value
-                :with-object
-                :with-array
-                :write-item
-                :with-output
                 :with-output-to-string*
                 :compile-encoder)
   (:export :*octets*

@@ -8,7 +8,14 @@
                 :finish-output-buffer)
   (:import-from :trivial-types
                 :association-list-p)
-  (:export :*octets*
+  (:export :write-key
+           :write-value
+           :write-key-value
+           :with-object
+           :with-array
+           :write-item
+           :with-output
+           :*octets*
            :*from*
            :*stream*
            :to-json
@@ -38,33 +45,82 @@
       (write-char char *stream*))
   nil)
 
+(defmacro with-macro-p (list)
+  `(and (consp ,list)
+       (member (car ,list) '(with-object with-array))))
+
+(defmacro write-key (key)
+  (declare (ignore key)))
+
+(defmacro write-value (value)
+  (declare (ignore value)))
+
+(defmacro write-key-value (key value)
+  (declare (ignore key value)))
+
+(defmacro with-object (&body body)
+  (let ((first (gensym "first")))
+    `(let ((,first t))
+       (macrolet ((write-key (key)
+                    `(progn
+                       (if ,',first
+                           (setq ,',first nil)
+                           (%write-char #\,))
+                       (%to-json (princ-to-string ,key))))
+                  (write-value (value)
+                    `(progn
+                       (%write-char #\:)
+                       ,(if (with-macro-p value)
+                            value
+                            `(%to-json ,value))))
+                  (write-key-value (key value)
+                    `(progn
+                       (write-key ,key)
+                       (write-value ,value))))
+         (%write-char #\{)
+         ,@body
+         (%write-char #\})))))
+
+(defmacro write-item (item)
+  (declare (ignore item)))
+
+(defmacro with-array (&body body)
+  (let ((first (gensym "first")))
+    `(let ((,first t))
+       (macrolet ((write-item (item)
+                    `(progn
+                       (if ,',first
+                           (setq ,',first nil)
+                           (%write-char #\,))
+                       ,(if (with-macro-p item)
+                            item
+                            `(%to-json ,item)))))
+         (%write-char #\[)
+         ,@body
+         (%write-char #\])))))
+
+(defmacro with-output ((stream) &body body)
+  `(let ((*stream* ,stream))
+     ,@body))
+
 (declaim (inline alist-to-json))
 (defun alist-to-json (list)
-  (%write-char #\{)
-  (loop for (item rest) on list
-        do (%to-json (princ-to-string (car item)))
-        do (%write-char #\:)
-        do (%to-json (cdr item))
-        when rest do (%write-char #\,))
-  (%write-char #\}))
+  (with-object
+    (loop for (item rest) on list
+          do (write-key-value (princ-to-string (car item))
+                              (cdr item)))))
 
 (declaim (inline plist-to-json))
 (defun plist-to-json (list)
-  (%write-char #\{)
-  (loop for (key val next) on list by #'cddr
-        do (%to-json (princ-to-string key))
-        do (%write-char #\:)
-        do (%to-json val)
-        when next do (%write-char #\,))
-  (%write-char #\}))
+  (with-object
+    (loop for (key value) on list by #'cddr
+          do (write-key-value (princ-to-string key) value))))
 
 (declaim (inline list-to-json))
 (defun list-to-json (list)
-  (%write-char #\[)
-  (loop for (item next) on list
-        do (%to-json item)
-        when next do (%write-char #\,))
-  (%write-char #\]))
+  (with-array
+    (loop for item in list
+          do (write-item item))))
 
 (defun to-json (obj &key (octets *octets*) (from *from*))
   "Converting object to JSON String."
@@ -113,25 +169,15 @@
     (t (list-to-json list))))
 
 (defmethod %to-json ((sv simple-vector))
-  (%write-char #\[)
-  (loop with max = (1- (length sv))
-        for item across sv
-        for index from 0
-        do (%to-json item)
-        unless (= index max) do (%write-char #\,))
-  (%write-char #\]))
+  (with-array
+    (loop for item across sv
+          do (write-item item))))
 
 (defmethod %to-json ((hash hash-table))
-  (%write-char #\{)
-  (loop with first = t
-        for key being the hash-key of hash
-          using (hash-value value)
-        unless first do (progn (setq first nil)
-                               (%write-char #\,))
-        do (%to-json (princ-to-string key))
-        do (%write-char #\:)
-        do (%to-json value)
-  (%write-char #\})))
+  (with-object
+    (loop for key being the hash-key of hash
+            using (hash-value value)
+          do (write-key-value key value))))
 
 (defmethod %to-json ((symbol symbol))
   (%to-json (symbol-name symbol)))
