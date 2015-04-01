@@ -131,7 +131,7 @@
         do (%to-json (princ-to-string key))
         do (%write-char #\:)
         do (%to-json value)
-  (%write-char #\}))))
+  (%write-char #\})))
 
 (defmethod %to-json ((symbol symbol))
   (%to-json (symbol-name symbol)))
