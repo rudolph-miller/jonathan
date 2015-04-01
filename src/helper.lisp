@@ -116,45 +116,38 @@
                    (symbol-name sym))))
                    
          args)
-    `(let ,(mapcar #'(lambda (sym)
-                       (list sym
-                             (gethash (symbol-name sym) lambda-list-hash)))
-                   args)
-       (locally
-           (declare #+sbcl(sb-ext:muffle-conditions sb-kernel:redefinition-warning))
-         (handler-bind
-             (#+sbcl(sb-kernel:redefinition-warning #'muffle-warning))
-           ,@(mapcar #'(lambda (sym)
-                         `(defmethod %to-json ((item (eql ,sym)))
-                            (%write-string
-                             ,(gethash (symbol-name sym) lambda-list-hash))))
-                     args)))
-       (let ((result (list (to-json (progn ,@body) :from ,from))))
-         ,@(mapcar #'(lambda (sym)
-                       `(setq result
-                              (loop for item in result
-                                    when (stringp item)
-                                      do (multiple-value-bind (start end) (scan ,(gethash (symbol-name sym) lambda-list-hash) item)
-                                           (when (and start end)
-                                             (setf item
-                                                   (list (subseq item 0 start)
-                                                         ',sym
-                                                         (subseq item end)))))
-                                    nconc (ensure-list item))))
-                   args)
-         (eval
-          `(lambda (,@',args)
-             (let ((*stream* ,(if ,octets
-                                  (make-output-buffer)
-                                  (make-string-output-stream)))
-                   (*octets* ,,octets))
-               ,@(loop for item in result
-                       if (stringp item)
-                         collecting (if ,octets
-                                        `(fast-write-sequence ,(string-to-octets item) *stream*)
-                                        `(write-string ,item *stream*))
-                       else
-                         collecting `(%to-json ,item))
-               ,(if ,octets
-                    `(finish-output-buffer *stream*)
-                    `(get-output-stream-string *stream*)))))))))
+    `(let* ,(append (mapcar #'(lambda (sym)
+                                (list sym
+                                      (gethash (symbol-name sym) lambda-list-hash)))
+                            args)
+                    `((result (list (to-json (progn ,@body) :from ,from)))))
+       ,@(mapcar #'(lambda (sym)
+                     `(setq result
+                            (loop for item in result
+                                  when (stringp item)
+                                    do (multiple-value-bind (start end) (scan (format nil "\"~a\""
+                                                                                      ,(gethash (symbol-name sym) lambda-list-hash))
+                                                                              item)
+                                         (when (and start end)
+                                           (setf item
+                                                 (list (subseq item 0 start)
+                                                       ',sym
+                                                       (subseq item end)))))
+                                  nconc (ensure-list item))))
+                 args)
+       (eval
+        `(lambda (,@',args)
+           (let ((*stream* ,(if ,octets
+                                (make-output-buffer)
+                                (make-string-output-stream)))
+                 (*octets* ,,octets))
+             ,@(loop for item in result
+                     if (stringp item)
+                       collecting (if ,octets
+                                      `(fast-write-sequence ,(string-to-octets item) *stream*)
+                                      `(write-string ,item *stream*))
+                     else
+                       collecting `(%to-json ,item))
+             ,(if ,octets
+                  `(finish-output-buffer *stream*)
+                  `(get-output-stream-string *stream*))))))))
