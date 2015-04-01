@@ -129,7 +129,7 @@
      (eval
       `(lambda (,@',args)
          (let ((*stream* ,(if ,octets
-                              (make-output-buffer)
+                              (make-output-buffer :output :vector)
                               (make-string-output-stream)))
                (*octets* ,,octets))
            ,@(loop for item in result

@@ -69,7 +69,7 @@
 (defun to-json (obj &key (octets *octets*) (from *from*))
   "Converting object to JSON String."
   (let ((*stream* (if octets
-                      (make-output-buffer)
+                      (make-output-buffer :output :vector)
                       (make-string-output-stream)))
         (*octets* octets)
         (*from* from))
@@ -120,6 +120,18 @@
         do (%to-json item)
         unless (= index max) do (%write-char #\,))
   (%write-char #\]))
+
+(defmethod %to-json ((hash hash-table))
+  (%write-char #\{)
+  (loop with first = t
+        for key being the hash-key of hash
+          using (hash-value value)
+        unless first do (progn (setq first nil)
+                               (%write-char #\,))
+        do (%to-json (princ-to-string key))
+        do (%write-char #\:)
+        do (%to-json value)
+  (%write-char #\}))))
 
 (defmethod %to-json ((symbol symbol))
   (%to-json (symbol-name symbol)))

@@ -7,7 +7,7 @@
 
 (diag "jonathan-test.encode")
 
-(plan 14)
+(plan 17)
 
 (is (to-json t)
     "true"
@@ -28,6 +28,16 @@
 (is (to-json '("Rudolph" "Miller"))
     "[\"Rudolph\",\"Miller\"]"
     "with list.")
+
+(is (to-json #("Rudolph" "Miller"))
+    "[\"Rudolph\",\"Miller\"]"
+    "with simple-vector.")
+
+(let ((hash (make-hash-table)))
+  (setf (gethash :|Rudolph| hash) "Miller")
+  (is (to-json hash)
+      "{\"Rudolph\":\"Miller\"}"
+      "with hash-talbe."))
 
 (is (to-json 1)
     "1"
