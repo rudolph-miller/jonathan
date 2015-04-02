@@ -7,7 +7,7 @@
 
 (diag "jonathan-test.helper")
 
-(plan 2)
+(plan 3)
 
 (subtest "with-output-to-string*"
   (is (with-output-to-string*
@@ -48,5 +48,27 @@
     (is-error (eval '(compile-encoder () (:value)))
               'simple-error
               "can raise the error with keyword in lambda-list.")))
+
+(subtest "compiler-macro"
+  (flet ((sample (name)
+           (to-json (list :name name))))
+    (is (sample "Rudolph")
+        "{\"NAME\":\"Rudolph\"}"
+      "without any keyword arguments."))
+
+  (flet ((sample (name)
+           (to-json (list (cons :name name)) :from :alist :octets t)))
+    (is (sample "Rudolph")
+        #(123 34 78 65 77 69 34 58 34 82 117 100 111 108 112 104 34 125)
+        "with :from and :octets."
+        :test #'equalp))
+
+  (flet ((sample (name)
+           (to-json `((:name . ,name)) :from :alist :octets t)))
+    (is (sample "Rudolph")
+        #(123 34 78 65 77 69 34 58 34 82 117 100 111 108 112 104 34 125)
+        "with quasiquote."
+        :test #'equalp)))
+
 
 (finalize)

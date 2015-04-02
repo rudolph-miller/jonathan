@@ -9,59 +9,42 @@
 
 (plan 24)
 
-(defclass user ()
-  ((id :initarg :id)
-   (name :initarg :name)))
-
 (subtest "with-object"
-  (defmethod %to-json ((user user))
-    (with-slots ((id id) (name name)) user
-      (with-object
-        (write-key "id")
-        (write-value id)
-        (write-key-value "name" name))))
-  (is (to-json (make-instance 'user :id 1 :name "Rudolph"))
-      "{\"id\":1,\"name\":\"Rudolph\"}"
-      "can handle write-key, write-value and write-key-value.")
+  (is-print
+   (with-object
+     (write-key "key1")
+     (write-value "value1")
+     (write-key-value "key2" "value2"))
+   "{\"key1\":\"value1\",\"key2\":\"value2\"}"
+   "can handle write-key, write-value and write-key-value.")
 
-  (defmethod %to-json ((user user))
-    (with-slots ((id id) (name name)) user
+  (is-print
+   (with-object
+     (write-key "key1")
+     (write-value
       (with-object
-        (write-key "id")
-        (write-value id)
-        (write-key "information")
-        (write-value
-         (with-object
-           (write-key "name")
-           (write-value name))))))
-  (is (to-json (make-instance 'user :id 1 :name "Rudolph"))
-      "{\"id\":1,\"information\":{\"name\":\"Rudolph\"}}"
-      "can handle nested macro."))
+        (write-key "key2")
+        (write-value "value"))))
+   "{\"key1\":{\"key2\":\"value\"}}"
+   "can handle nested macro."))
 
 (subtest "with-array"
-  (defmethod %to-json ((user user))
-    (with-slots ((id id) (name name)) user
-      (with-array
-        (write-item id)
-        (write-item name))))
-  (is (to-json (make-instance 'user :id 1 :name "Rudolph"))
-      "[1,\"Rudolph\"]"
-      "can handle write-item.")
+  (is-print
+   (with-array
+     (write-item 1)
+     (write-item 2))
+   "[1,2]"
+   "can handle write-item.")
 
-  (defmethod %to-json ((user user))
-    (with-slots ((id id) (name name)) user
+  (is-print
+   (with-array
+     (write-item 1)
+     (write-item
       (with-array
-        (write-item
-         (with-array
-           (write-item "id")
-           (write-item id)))
-        (write-item
-         (with-array
-           (write-item "name")
-           (write-item name))))))
-  (is (to-json (make-instance 'user :id 1 :name "Rudolph"))
-      "[[\"id\",1],[\"name\",\"Rudolph\"]]"
-      "can handle nested macro."))
+        (write-item 2)
+        (write-item 3))))
+     "[1,[2,3]]"
+     "can handle nested macro."))
 
 (subtest "with-output"
   (is (with-output-to-string (stream)

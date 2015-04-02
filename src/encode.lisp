@@ -48,7 +48,7 @@
 
 (defmacro with-macro-p (list)
   `(and (consp ,list)
-       (member (car ,list) '(with-object with-array))))
+        (member (car ,list) '(with-object with-array))))
 
 (defmacro write-key (key)
   (declare (ignore key)))
@@ -123,8 +123,9 @@
     (loop for item in list
           do (write-item item))))
 
-(defun to-json (obj &key (octets *octets*) (from *from*))
+(defun to-json (obj &key (octets *octets*) (from *from*) dont-compile)
   "Converting object to JSON String."
+  (declare (ignore dont-compile))
   (let ((*stream* (if octets
                       (make-output-buffer :output :vector)
                       (make-string-output-stream)))

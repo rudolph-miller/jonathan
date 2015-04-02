@@ -51,6 +51,7 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
   - Association List. (`:from :alist`)
   - Jsown Object. (`:from :jsown`)
 - can return not only string but also octets.
+- can be compiled by compiler-macro.
 
 ```Lisp
 ;; Restricted Property List Samples
@@ -89,7 +90,18 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
   (time
    (dotimes (_ 100000)
      (funcall post "Post from Alien!"))))
-;; => 0.106
+;; => 0.095
+
+(flet ((post (text)
+         (jonathan:to-json
+               (list :|channel| "lisp-alien"
+                     :|username| "alien-bot"
+                     :|text| text
+                     :|icon_url| "http://www.lisperati.com/lisplogo_warning2_256.png"))))
+  (time
+   (dotimes (_ 100000)
+     (post "Post from Alien!"))))
+;; => 0.095
 
 (flet ((post (text)
          (format nil "{\"channel\":\"lisp-alien\",\"username\":\"alien-bot\",\"text\":~s,\"icon_url\":\"http://www.lisperati.com/lisplogo_warning2_256.png\"}" text)))
@@ -102,7 +114,8 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
                (list :|channel| "lisp-alien"
                      :|username| "alien-bot"
                      :|text| text
-                     :|icon_url| "http://www.lisperati.com/lisplogo_warning2_256.png"))))
+                     :|icon_url| "http://www.lisperati.com/lisplogo_warning2_256.png")
+               :dont-compile t)))
   (time
    (dotimes (_ 100000)
      (post "Post from Alien!"))))

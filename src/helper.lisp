@@ -12,7 +12,10 @@
                 :scan)
   (:import-from :alexandria
                 :length=
-                :ensure-list)
+                :ensure-list
+                :starts-with-subseq)
+  (:import-from :trivial-types
+                :proper-list-p)
   (:export :with-output-to-string*
            :compile-encoder))
 (in-package :jonathan.helper)
@@ -45,7 +48,7 @@
                               (list sym
                                     (symbol-name (gensym *compile-encoder-prefix*))))
                           args)
-                  `((result (list (to-json (progn ,@body) :from ,from)))))
+                  `((result (list (to-json (progn ,@body) :from ,from :dont-compile t)))))
      ,@(mapcar #'(lambda (sym)
                    `(setq result
                           (loop for item in result
@@ -77,3 +80,46 @@
            ,(if ,octets
                 `(finish-output-buffer *stream*)
                 `(get-output-stream-string *stream*)))))))
+
+(defun variable-p (sym)
+  (handler-case
+      (typecase sym
+        (keyword nil)
+        (symbol (when (or (constantp sym)
+                          (symbol-function sym))
+                  nil))
+        (t (let ((str (princ-to-string sym)))
+             (if (starts-with-subseq "," str)
+                 (intern (subseq sym 1))
+                 nil))))
+    (undefined-function () sym)))
+
+(defun collect-variables (list)
+  (remove-duplicates
+   (if (consp list)
+       (if (and (symbolp (car list))
+                (equal (symbol-name (car list))
+                       "QUASIQUOTE"))
+           (collect-variables (cdr list))
+           (if (and (atom (car list))
+                    (symbolp (car list))
+                    (special-operator-p (car list)))
+               nil
+               (loop for item on list
+                     nconc (collect-variables (car item))
+                     when (and (not (consp (cdr item))) (not (null (cdr item))))
+                       nconc (collect-variables (cdr item))
+                     while (consp (cdr item)))))
+       (ensure-list (variable-p list)))))
+
+(define-compiler-macro to-json (&whole form args &key from octets dont-compile)
+  (handler-case
+      (if (not dont-compile)
+          (let ((variables (collect-variables args)))
+            `(funcall
+              ,(eval
+                `(compile-encoder (:from ,from :octets ,octets) (,@variables)
+                   ,args))
+              ,@variables))
+          form)
+    (error () form)))
