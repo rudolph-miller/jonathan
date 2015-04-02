@@ -1,6 +1,8 @@
 (in-package :cl-user)
 (defpackage jonathan
   (:use :cl)
+  (:import-from :jonathan.error
+                :<jonathan-unexpected-eof-error>)
   (:import-from :jonathan.encode
                 :*octets*
                 :*from*
@@ -19,7 +21,6 @@
                 :*false-value*
                 :*null-value*
                 :*empty-array-value*
-                :<jonathan-unexpected-eof-error>
                 :parse)
   (:import-from :jonathan.helper
                 :with-output-to-string*

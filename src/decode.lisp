@@ -1,25 +1,18 @@
 (in-package :cl-user)
 (defpackage jonathan.decode
   (:use :cl
+        :jonathan.error
         :jonathan.util
         :proc-parse)
   (:export :*false-value*
            :*null-value*
            :*empty-array-value*
-           :<jonathan-unexpected-eof-error>
            :parse))
 (in-package :jonathan.decode)
 
 (defvar *false-value* nil)
 (defvar *null-value* nil)
 (defvar *empty-array-value* nil)
-
-(define-condition <jonathan-unexpected-eof-error> (simple-error)
-  ((object :initarg :object))
-  (:report
-   (lambda (condition stream)
-     (with-slots ((object object)) condition
-       (format stream "Unexpected EOF found:~%~a~%" object)))))
 
 (defun parse (string &key (as :plist) junk-allowed)
   (declare (type simple-string string))
