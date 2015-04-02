@@ -32,6 +32,7 @@
 
 (declaim (inline %write-string))
 (defun %write-string (string)
+  (declare (type simple-string string))
   (if *octets*
       (loop for c across string
             do (fast-write-byte (char-code c) *stream*))
@@ -137,6 +138,7 @@
 (defgeneric %to-json (obj))
 
 (defmethod %to-json ((string string))
+  (declare (type simple-string string))
   (%write-char #\")
   (loop for char across string
         do (case char
