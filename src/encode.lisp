@@ -108,14 +108,13 @@
 (defun alist-to-json (list)
   (with-object
     (loop for (item rest) on list
-          do (write-key-value (princ-to-string (car item))
-                              (cdr item)))))
+          do (write-key-value (car item) (cdr item)))))
 
 (declaim (inline plist-to-json))
 (defun plist-to-json (list)
   (with-object
     (loop for (key value) on list by #'cddr
-          do (write-key-value (princ-to-string key) value))))
+          do (write-key-value key value))))
 
 (declaim (inline list-to-json))
 (defun list-to-json (list)
