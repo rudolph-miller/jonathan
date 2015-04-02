@@ -2,7 +2,7 @@ language: common-lisp
 
 env:
   matrix:
-    - LISP=sbcl
+    - LISP=sbcl COVERALLS=true
     - LISP=ccl
 
 install:
@@ -11,6 +11,10 @@ install:
 
 before_script:
   - git clone https://github.com/fukamachi/proc-parse ~/lisp/proc-parse
+  - git clone https://github.com/fukamachi/cl-coveralls ~/lisp/cl-coveralls
 
 script:
-  - cl -l prove -e '(or (prove:run :jonathan-test) (uiop:quit -1))'
+  - cl -l prove -l cl-coveralls
+       -e '(or (coveralls:with-coveralls (:exclude (list "t" "src/error.lisp"))
+                 (prove:run :jonathan-test))
+               (uiop:quit -1))'
