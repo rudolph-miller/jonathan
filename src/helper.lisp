@@ -39,9 +39,6 @@
           (push item passed)))
     t))
 
-(defun check-duplicates (list)
-  (not (length= list (remove-duplicates list))))
-
 (defmacro compile-encoder ((&key octets from) (&rest args) &body body)
   (check-args args)
   `(let* ,(append (mapcar #'(lambda (sym)
