@@ -7,7 +7,7 @@
 
 (diag "jonathan-test.encode")
 
-(plan 19)
+(plan 24)
 
 (defclass user ()
   ((id :initarg :id)
@@ -87,6 +87,26 @@
     "\"Rudolph\""
     "with string.")
 
+(is (to-json (format nil "Rudo~alph" #\Newline))
+    "\"Rudo\\nlph\""
+    "with #\Newline.")
+
+(is (to-json (format nil "Rudo~alph" #\Return))
+    "\"Rudo\\rlph\""
+    "with #\Return.")
+
+(is (to-json (format nil "Rudo~alph" #\Tab))
+    "\"Rudo\\tlph\""
+    "with #\Tab.")
+
+(is (to-json (format nil "Rudo~alph" #\"))
+    "\"Rudo\\\"lph\""
+    "with #\".")
+
+(is (to-json (format nil "Rudo~alph" #\\))
+    "\"Rudo\\\\lph\""
+    "with #\\.")
+
 (is (to-json '("Rudolph" "Miller"))
     "[\"Rudolph\",\"Miller\"]"
     "with list.")
@@ -139,15 +159,10 @@
    (name :type string :initarg :name)))
 
 (defmethod %to-json ((user user))
-  (%write-char #\{)
-  (%to-json "id")
-  (%write-char #\:)
-  (%to-json (slot-value user 'id))
-  (%write-char #\,)
-  (%to-json "name")
-  (%write-char #\:)
-  (%to-json (slot-value user 'name))
-  (%write-char #\}))
+  (with-object
+    (write-key "id")
+    (write-value (slot-value user 'id))
+    (write-key-value "name" (slot-value user 'name))))
 
 (is (to-json (make-instance 'user :id 1 :name "Rudolph"))
     "{\"id\":1,\"name\":\"Rudolph\"}"

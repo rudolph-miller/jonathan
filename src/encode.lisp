@@ -142,9 +142,9 @@
   (%write-char #\")
   (loop for char across string
         do (case char
-             (#\newline (%write-string "\\n"))
-             (#\return (%write-string "\\r"))
-             (#\tab (%write-string "\\t"))
+             (#\Newline (%write-string "\\n"))
+             (#\Return (%write-string "\\r"))
+             (#\Tab (%write-string "\\t"))
              (#\" (%write-string "\\\""))
              (#\\ (%write-string "\\\\"))
              (t (%write-char char))))
