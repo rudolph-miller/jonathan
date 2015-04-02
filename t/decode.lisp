@@ -10,7 +10,7 @@
 
 (diag "jonathan-test.decode")
 
-(plan 13)
+(plan 17)
 
 (defun plist-alist (plist)
   (if (my-plist-p plist)
@@ -90,6 +90,18 @@
 (parse-test "Rudolph"
             "with string.")
 
+(parse-test "Rudolph\\b"
+            "with #\Backspace.")
+
+(parse-test "Rudolph\\f"
+            "with #\Linefeed.")
+
+(parse-test "Rudolph\\n"
+            "with #\Newline.")
+
+(parse-test "Rudolph\\r"
+            "with #\Return.")
+
 (parse-test "Rudolph\\t"
             "with #\Tab.")
 
@@ -111,7 +123,27 @@
 (subtest "<jonathan-unexpected-eof>"
   (is-error (parse "{\key\":\"value\"")
             '<jonathan-unexpected-eof-error>
-            "Parse can raise <jonathan-unexpected-eof> with incomplete JSON foramt string."))
+            "without }.")
+
+  (is-error (parse "{\key\":\"value")
+            '<jonathan-unexpected-eof-error>
+            "without \".")
+
+  (is-error (parse "{\key\":\"")
+            '<jonathan-unexpected-eof-error>
+            "without any characters after \".")
+
+  (is-error (parse "{\key\":")
+            '<jonathan-unexpected-eof-error>
+            "without any value after :.")
+
+  (is-error (parse "{\key\"")
+            '<jonathan-unexpected-eof-error>
+            "without :.")
+
+  (is-error (parse "{")
+            '<jonathan-unexpected-eof-error>
+            "without any keys after {."))
 
 (subtest ":junk-allowed t"
   (ok (parse "{\key\":\"value\"" :junk-allowed t)
