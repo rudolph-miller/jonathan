@@ -7,7 +7,7 @@
 
 (diag "jonathan-test.encode")
 
-(plan 24)
+(plan 25)
 
 (subtest "with-object"
   (is-print
@@ -65,6 +65,10 @@
 (is (to-json :false)
     "false"
     "with :false.")
+
+(is (to-json 'rudolph)
+    "\"RUDOLPH\""
+    "with symbol.")
 
 (is (to-json "Rudolph")
     "\"Rudolph\""
