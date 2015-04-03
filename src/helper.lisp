@@ -63,7 +63,7 @@
                args)
      (let ((form `(let ((*stream* ,(if ,octets
                                        `(make-output-buffer :output :vector)
-                                       `(make-string-output-stream)))
+                                       `(make-string-output-stream :element-type 'character)))
                         (*octets* ,,octets))
                     ,@(loop for item in result
                             if (stringp item)

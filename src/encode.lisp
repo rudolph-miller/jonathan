@@ -46,6 +46,20 @@
       (write-char char *stream*))
   nil)
 
+(declaim (inline string-to-json))
+(defun string-to-json (string)
+  (declare (type simple-string string))
+  (%write-char #\")
+  (loop for char across string
+        do (case char
+             (#\Newline (%write-string "\\n"))
+             (#\Return (%write-string "\\r"))
+             (#\Tab (%write-string "\\t"))
+             (#\" (%write-string "\\\""))
+             (#\\ (%write-string "\\\\"))
+             (t (%write-char char))))
+  (%write-char #\"))
+
 (defmacro with-macro-p (list)
   `(and (consp ,list)
         (member (car ,list) '(with-object with-array))))
@@ -67,7 +81,7 @@
                        (if ,',first
                            (setq ,',first nil)
                            (%write-char #\,))
-                       (%to-json (princ-to-string ,key))))
+                       (string-to-json (princ-to-string ,key))))
                   (write-value (value)
                     `(progn
                        (%write-char #\:)
@@ -138,23 +152,13 @@
 (defgeneric %to-json (obj))
 
 (defmethod %to-json ((string string))
-  (declare (type simple-string string))
-  (%write-char #\")
-  (loop for char across string
-        do (case char
-             (#\Newline (%write-string "\\n"))
-             (#\Return (%write-string "\\r"))
-             (#\Tab (%write-string "\\t"))
-             (#\" (%write-string "\\\""))
-             (#\\ (%write-string "\\\\"))
-             (t (%write-char char))))
-  (%write-char #\"))
+  (string-to-json string))
 
 (defmethod %to-json ((number number))
   (%write-string (princ-to-string number)))
 
 (defmethod %to-json ((ratio ratio))
-  (%to-json (coerce ratio 'float)))
+  (%write-string (princ-to-string (coerce ratio 'float))))
 
 (defmethod %to-json ((list list))
   (cond
@@ -182,7 +186,7 @@
           do (write-key-value key value))))
 
 (defmethod %to-json ((symbol symbol))
-  (%to-json (symbol-name symbol)))
+  (string-to-json (symbol-name symbol)))
 
 (defmethod %to-json ((_ (eql t)))
   (%write-string "true"))
