@@ -18,7 +18,7 @@
   (declare (type simple-string string))
   (with-vector-parsing (string)
     (macrolet ((skip-spaces ()
-                 `(skip* #\Space))
+                 `(skip* #\Space #\Newline #\Tab))
                (skip?-with-spaces (char)
                  `(progn
                     (skip-spaces)
