@@ -39,7 +39,7 @@
           (push item passed)))
     t))
 
-(defmacro compile-encoder ((&key octets from return-form) (&rest args) &body body)
+(defmacro compile-encoder ((&key octets from return-form unsafely) (&rest args) &body body)
   (check-args args)
   `(let* ,(append (mapcar #'(lambda (sym)
                               (list sym
@@ -64,9 +64,9 @@
      (let ((form `(let ((*stream* ,(let ((make-buffer (if ,octets
                                                      `(make-output-buffer :output :vector)
                                                      `(make-string-output-stream :element-type 'character))))
-                                     (if ,return-form
-                                         make-buffer
-                                         (eval make-buffer))))
+                                     (if (or (not ,return-form) ,unsafely)
+                                         (eval make-buffer)
+                                         make-buffer)))
                         (*octets* ,,octets))
                     ,@(loop for item in result
                             if (stringp item)
@@ -113,12 +113,12 @@
                      while (consp (cdr item)))))
        (ensure-list (variable-p list)))))
 
-(define-compiler-macro to-json (&whole form args &key from octets dont-compile)
+(define-compiler-macro to-json (&whole form args &key from octets dont-compile compile-unsafely)
   (handler-case
       (if (not dont-compile)
           (let ((variables (collect-variables args)))
             (eval
-             `(compile-encoder (:from ,from :octets ,octets :return-form t) ,variables
+             `(compile-encoder (:from ,from :octets ,octets :return-form t :unsafely ,compile-unsafely) ,variables
                 ,args)))
           form)
     (error () form)))

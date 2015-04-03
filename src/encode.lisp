@@ -136,9 +136,9 @@
     (loop for item in list
           do (write-item item))))
 
-(defun to-json (obj &key (octets *octets*) (from *from*) dont-compile)
+(defun to-json (obj &key (octets *octets*) (from *from*) dont-compile compile-unsafely)
   "Converting object to JSON String."
-  (declare (ignore dont-compile))
+  (declare (ignore dont-compile compile-unsafely))
   (let ((*stream* (if octets
                       (make-output-buffer :output :vector)
                       (make-string-output-stream)))
