@@ -61,9 +61,12 @@
                                                      (subseq item end)))))
                                 nconc (ensure-list item))))
                args)
-     (let ((form `(let ((*stream* ,(if ,octets
-                                       `(make-output-buffer :output :vector)
-                                       `(make-string-output-stream :element-type 'character)))
+     (let ((form `(let ((*stream* ,(let ((make-buffer (if ,octets
+                                                     `(make-output-buffer :output :vector)
+                                                     `(make-string-output-stream :element-type 'character))))
+                                     (if ,return-form
+                                         make-buffer
+                                         (eval make-buffer))))
                         (*octets* ,,octets))
                     ,@(loop for item in result
                             if (stringp item)
