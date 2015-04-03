@@ -39,7 +39,7 @@
           (push item passed)))
     t))
 
-(defmacro compile-encoder ((&key octets from) (&rest args) &body body)
+(defmacro compile-encoder ((&key octets from return-form) (&rest args) &body body)
   (check-args args)
   `(let* ,(append (mapcar #'(lambda (sym)
                               (list sym
@@ -61,22 +61,23 @@
                                                      (subseq item end)))))
                                 nconc (ensure-list item))))
                args)
-     (eval
-      `(lambda (,@',args)
-         (let ((*stream* ,(if ,octets
-                              (make-output-buffer :output :vector)
-                              (make-string-output-stream)))
-               (*octets* ,,octets))
-           ,@(loop for item in result
-                   if (stringp item)
-                     collecting (if ,octets
-                                    `(fast-write-sequence ,(string-to-octets item) *stream*)
-                                    `(write-string ,item *stream*))
-                   else
-                     collecting `(%to-json ,item))
-           ,(if ,octets
-                `(finish-output-buffer *stream*)
-                `(get-output-stream-string *stream*)))))))
+     (let ((form `(let ((*stream* ,(if ,octets
+                                       `(make-output-buffer :output :vector)
+                                       `(make-string-output-stream)))
+                        (*octets* ,,octets))
+                    ,@(loop for item in result
+                            if (stringp item)
+                              collecting (if ,octets
+                                             `(fast-write-sequence ,(string-to-octets item) *stream*)
+                                             `(write-string ,item *stream*))
+                            else
+                              collecting `(%to-json ,item))
+                    ,(if ,octets
+                         `(finish-output-buffer *stream*)
+                         `(get-output-stream-string *stream*)))))
+       (if ,return-form
+           form
+           (eval `(lambda (,@',args) ,form))))))
 
 (defun variable-p (sym)
   (handler-case
@@ -113,10 +114,8 @@
   (handler-case
       (if (not dont-compile)
           (let ((variables (collect-variables args)))
-            `(funcall
-              ,(eval
-                `(compile-encoder (:from ,from :octets ,octets) (,@variables)
-                   ,args))
-              ,@variables))
+            (eval
+             `(compile-encoder (:from ,from :octets ,octets :return-form t) ,variables
+                ,args)))
           form)
     (error () form)))
