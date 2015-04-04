@@ -141,6 +141,7 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
   - Hash Table. (`:as :hash-table`)
 - can allow junked JSON format string (`:junk-allowed t`)
 - can customize `*null-value*`, `*false-value*` and `*empty-array-value*`.
+- can restrict keywords to read. (`:keywords-to-read`)
 
 ```Lisp
 (parse "{\"key\":\"value\"}")
@@ -157,6 +158,9 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
       (*empty-array-value* :[]))
   (parse "{\"null\":null,\"false\":false,\"empty\":[]}"))
 ;; => (:|null| :NULL :|false| :FALSE :|empty| :[])
+
+(parse "{\"key1\":\"value1\",\"key2\":\"value2\"}" :keywords-to-read '("key1"))
+;; => (:|key1| "value1")
 ```
 
 ![Benchmark of parse](./images/parse.png)
@@ -179,6 +183,28 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
    (dotimes (_ 100000)
      (jsown:parse s))))
 ;; => 0.204
+```
+
+![Benchmark of parse partially](./images/parse-partially.png)
+
+```Lisp
+(let ((s "{\"key1\":\"value\",\"key2\":1.1,\"key3\":[\"Hello\",1.2]}"))
+  (time
+   (dotimes (_ 100000)
+     (jonathan:parse s :as :alist :keywords-to-read '("key1")))))
+;; => 0.065
+
+(let ((s "{\"key1\":\"value\",\"key2\":1.1,\"key3\":[\"Hello\",1.2]}"))
+  (time
+   (dotimes (_ 100000)
+     (jonathan:parse s :as :jsown :keywords-to-read '("key1")))))
+;; => 0.069
+
+(let ((s "{\"key1\":\"value\",\"key2\":1.1,\"key3\":[\"Hello\",1.2]}"))
+  (time
+   (dotimes (_ 100000)
+     (jsown:parse s "key1"))))
+;; => 0.085
 ```
 
 ## Helper

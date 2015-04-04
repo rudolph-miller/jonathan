@@ -10,7 +10,7 @@
 
 (diag "jonathan-test.decode")
 
-(plan 17)
+(plan 18)
 
 (defun plist-alist (plist)
   (if (my-plist-p plist)
@@ -148,5 +148,10 @@
 (subtest ":junk-allowed t"
   (ok (parse "{\key\":\"value\"" :junk-allowed t)
       "can allow incomplete JSON foramt string."))
+
+(subtest ":keywords-to-read"
+  (is (parse "{\"key1\":\"value1\",\"key2\":\"value2\"}" :keywords-to-read '("key1"))
+      '(:|key1| "value1")
+      "can restrict keywords to read."))
 
 (finalize)
