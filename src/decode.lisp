@@ -79,10 +79,9 @@
                          for key = (progn (advance*)
                                           (let ((string (read-string skip-p)))
                                             (cond
+                                              ((or (not keywords-to-read) force-read-p) string)
                                               (matcher-for-keywords (when (funcall matcher-for-keywords string) string))
-                                              ((and keywords-to-read (not force-read-p))
-                                               (member string keywords-to-read :test #'string=) string)
-                                              (t string))))
+                                              (t (member string keywords-to-read :test #'string=) string))))
                          for value = (progn (skip-spaces)
                                             (advance*)
                                             (skip-spaces)
