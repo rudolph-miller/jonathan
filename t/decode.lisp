@@ -150,8 +150,8 @@
       "can allow incomplete JSON foramt string."))
 
 (subtest ":keywords-to-read"
-  (is (parse "{\"key1\":\"value1\",\"key2\":\"value2\"}" :keywords-to-read '("key1"))
-      '(:|key1| "value1")
+  (is (parse "{\"key1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}" :keywords-to-read '("key1"))
+      '(:|key1| (:|key2| "value2"))
       "can restrict keywords to read."))
 
 (finalize)
