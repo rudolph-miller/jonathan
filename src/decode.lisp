@@ -20,7 +20,20 @@
         (as-jsown (eq as :jsown))
         (as-hash-table (eq as :hash-table)))
     (with-vector-parsing (string)
-      (macrolet ((skip-spaces ()
+      (macrolet ((with-allowed-last-character ((&optional char) &body body)
+                   (let ((junk-allowed-block (gensym "junk-allowed-block")))
+                     `(block ,junk-allowed-block
+                        (tagbody
+                           (return-from ,junk-allowed-block
+                             (progn ,@body))
+                         :eof
+                           (return-from ,junk-allowed-block
+                             (or junk-allowed
+                                 (if (eq ,char (current))
+                                     t
+                                     (error '<jonathan-unexpected-eof-error>
+                                            :object string))))))))
+                 (skip-spaces ()
                    `(skip* #\Space #\Newline #\Tab))
                  (skip?-with-spaces (char)
                    `(progn
@@ -28,22 +41,23 @@
                       (skip? ,char)
                       (skip-spaces)))
                  (skip?-or-eof (char)
-                   `(or (skip? ,char) (and (eofp)
-                                           (or junk-allowed
-                                               (error '<jonathan-unexpected-eof-error>
-                                                      :object string))))))
+                   `(with-allowed-last-character (,char)
+                      (or (skip? ,char)
+                      (when (eofp)
+                        (go :eof))))))
         (labels ((dispatch ()
                    (skip-spaces)
                    (match-case
-                    ("{" (read-object))
-                    ("\"" (read-string))
-                    ("[" (read-array))
-                    ("true" t)
-                    ("false" *false-value*)
-                    ("null" *null-value*)
-                    (otherwise (if (eofp)
-                                   (return-from dispatch)
-                                   (read-number)))))
+                    ("{" (return-from dispatch (read-object)))
+                    ("\"" (return-from dispatch (read-string)))
+                    ("[" (return-from dispatch (read-array)))
+                    ("true" (return-from dispatch t))
+                    ("false" (return-from dispatch *false-value*))
+                    ("null" (return-from dispatch *null-value*))
+                    (otherwise (return-from dispatch
+                                 (if (eofp)
+                                     nil
+                                     (read-number))))))
                  (read-object ()
                    (skip-spaces)
                    (loop until (and (skip?-or-eof #\})
@@ -73,9 +87,10 @@
                        (let ((start (pos))
                              (escaped-count 0))
                          (declare (type fixnum start escaped-count))
-                         (skip-while (lambda (c)
-                                       (or (and (char= c #\\) (incf escaped-count) (advance*))
-                                           (char/= c #\"))))
+                         (with-allowed-last-character (#\")
+                           (skip-while (lambda (c)
+                                         (or (and (char= c #\\) (incf escaped-count) (advance*))
+                                             (char/= c #\")))))
                          (prog1
                              (if (= escaped-count 0)
                                  (subseq string start (pos))
@@ -118,7 +133,8 @@
                    (bind (num-str (skip-while integer-char-p))
                      (let ((num (the fixnum (or (parse-integer num-str :junk-allowed t) 0))))
                        (return-from read-number
-                         (if (skip? #\.)
+                         (if (with-allowed-last-character ()
+                               (skip? #\.))
                              (+ num
                                 (block nil
                                   (let ((rest-start (the fixnum (pos))))
