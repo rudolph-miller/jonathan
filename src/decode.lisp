@@ -14,7 +14,7 @@
 (defvar *null-value* nil)
 (defvar *empty-array-value* nil)
 
-(defmacro make-matcher-macro (keywords)
+(defmacro make-matcher (keywords)
   (let ((matcher-block (gensym)))
     `(lambda (key)
        (block ,matcher-block
@@ -80,8 +80,9 @@
                                           (let ((string (read-string skip-p)))
                                             (cond
                                               (matcher-for-keywords (when (funcall matcher-for-keywords string) string))
-                                              (force-read-p string)
-                                              (t (when (member string keywords-to-read :test #'string=) string)))))
+                                              ((and keywords-to-read (not force-read-p))
+                                               (member string keywords-to-read :test #'string=) string)
+                                              (t string))))
                          for value = (progn (skip-spaces)
                                             (advance*)
                                             (skip-spaces)
@@ -184,6 +185,6 @@
           `(parse ,string :as ,as
                           :junk-allowed ,junk-allowed
                           :keywords-to-read ,keywords-to-read
-                          :matcher-for-keywords (make-matcher-macro ,(eval keywords-to-read)))
+                          :matcher-for-keywords (make-matcher ,(eval keywords-to-read)))
           form)
     (error () form)))
