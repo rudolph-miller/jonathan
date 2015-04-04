@@ -43,8 +43,7 @@
                  (skip?-or-eof (char)
                    `(with-allowed-last-character (,char)
                       (or (skip? ,char)
-                      (when (eofp)
-                        (go :eof))))))
+                          (when (eofp) (go :eof))))))
         (labels ((dispatch ()
                    (skip-spaces)
                    (match-case
