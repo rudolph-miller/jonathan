@@ -52,8 +52,9 @@
                  (with-skip-spaces (&body body)
                    `(progn
                       (skip-spaces)
-                      ,@body
-                      (skip-spaces)))
+                      (prog1
+                          (progn ,@body)
+                        (skip-spaces))))
                  (skip?-or-eof (char)
                    `(wIth-allowed-last-character (,char)
                       (or (skip? ,char)
@@ -86,8 +87,8 @@
                                              ((or (not (or keyword-normalizer keywords-to-read)) force-read-p skip-p) string)
                                              (keyword-normalizer (funcall keyword-normalizer string))
                                              (t (when (member string keywords-to-read :test #'string=) string)))))
-                         as value = (progn (with-skip-spaces (advance*))
-                                           (dispatch (not key) key))
+                         as value = (and (with-skip-spaces (advance*))
+                                         (dispatch (not key) key))
                          do (with-skip-spaces (skip? #\,))
                          when key
                            do (cond
@@ -99,21 +100,19 @@
                                        (cons :obj result)
                                        result))))
                  (read-string (&optional skip-p)
-                   (if (eofp)
-                       ""
-                       (let ((start (pos))
-                             (escaped-count 0))
-                         (declare (type fixnum start escaped-count))
-                         (with-allowed-last-character (#\")
-                           (skip-while (lambda (c)
-                                         (or (and (char= c #\\) (incf escaped-count) (advance*))
-                                             (char/= c #\")))))
-                         (prog1
-                             (unless skip-p
-                               (if (= escaped-count 0)
-                                   (subseq string start (pos))
-                                   (parse-string-with-escaping start escaped-count)))
-                           (advance*)))))
+                   (let ((start (pos))
+                         (escaped-count 0))
+                     (declare (type fixnum start escaped-count))
+                     (with-allowed-last-character (#\")
+                       (skip-while (lambda (c)
+                                     (or (and (char= c #\\) (incf escaped-count) (advance*))
+                                         (char/= c #\")))))
+                     (prog1
+                         (unless skip-p
+                           (if (= escaped-count 0)
+                               (subseq string start (pos))
+                               (parse-string-with-escaping start escaped-count)))
+                       (advance*))))
                  (parse-string-with-escaping (start escaped-count)
                    (declare (type fixnum start escaped-count))
                    (loop with result = (make-string (- (pos) start escaped-count))
