@@ -71,36 +71,26 @@
                                      (read-number skip-p))))))
                  (read-object (&optional skip-p force-read-p)
                    (skip-spaces)
-                   (loop until (and (skip?-or-eof #\})
-                                    (or (when (eq as :hash-table)
-                                          (return-from read-object hash-table))
-                                        t))
-                         with first = t
-                         with hash-table = nil
-                         for key = (progn (advance*)
-                                          (let ((string (read-string skip-p)))
-                                            (cond
-                                              ((or (not (or keywords-to-read keyword-normalizer)) force-read-p) string)
-                                              (keyword-normalizer (funcall keyword-normalizer string))
-                                              (t (when (member string keywords-to-read :test #'string=) string)))))
-                         for value = (progn (with-skip-spaces (advance*))
-                                            (dispatch (not key) key))
-                         when (and first as-hash-table)
-                           do (setq first nil)
-                              (setq hash-table (make-hash-table :test #'equal))
-                         do (with-skip-spaces (skip? #\,))
-                         when (and first as-jsown)
-                           collecting (progn (setq first nil) :obj)
-                         if (not key)
-                           nconc nil
-                         else
-                           if (or as-alist as-jsown)
-                             collecting (cons key value)
-                         else
-                           if as-hash-table
-                             do (setf (gethash key hash-table) value)
-                         else
-                           nconc (list (make-keyword key) value)))
+                     (loop until (skip?-or-eof #\})
+                           with result = (when as-hash-table (make-hash-table :test #'equal))
+                           as key = (progn (advance*)
+                                           (let ((string (read-string skip-p)))
+                                             (cond
+                                               ((or (not (or keywords-to-read keyword-normalizer)) force-read-p) string)
+                                               (keyword-normalizer (funcall keyword-normalizer string))
+                                               (t (when (member string keywords-to-read :test #'string=) string)))))
+                           as value = (progn (with-skip-spaces (advance*))
+                                             (dispatch (not key) key))
+                           do (with-skip-spaces (skip? #\,))
+                           when key
+                             do (cond
+                                  ((or as-alist as-jsown) (push (cons key value) result))
+                                  (as-hash-table (setf (gethash key result) value))
+                                  (t (setq result (nconc (list (make-keyword key) value) result))))
+                           finally (return-from read-object
+                                     (if as-jsown
+                                         (cons :obj result)
+                                         result))))
                  (read-string (&optional skip-p)
                    (if (eofp)
                        ""
