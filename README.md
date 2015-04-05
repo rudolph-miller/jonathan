@@ -167,8 +167,8 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
 (flet ((normalizer (key)
          (when (equal key "key1")
            "other-key")))
-  (parse "{\"key1\":\"value1\",\"key2\":\"value2\"}" :keyword-normalizer #'normalizer))
-;; => (:|other-key| "value1")
+  (parse "{\"key1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}" :keyword-normalizer #'normalizer))
+;; => (:|other-key| (:|key2| "value2"))
 ```
 
 ![Benchmark of parse](./images/parse.png)
