@@ -2,7 +2,8 @@
 (defpackage jonathan
   (:use :cl)
   (:import-from :jonathan.error
-                :<jonathan-unexpected-eof-error>)
+                :<jonathan-unexpected-eof-error>
+                :<jonathan-incomplete-json-error>)
   (:import-from :jonathan.encode
                 :*octets*
                 :*from*
@@ -35,6 +36,7 @@
            :*null-value*
            :*empty-array-value*
            :<jonathan-unexpected-eof-error>
+           :<jonathan-incomplete-json-error>
            :parse
            :write-key
            :write-value

@@ -65,38 +65,37 @@
                     ("true" (return-from dispatch t))
                     ("false" (return-from dispatch *false-value*))
                     ("null" (return-from dispatch *null-value*))
-                    (otherwise (return-from dispatch
-                                 (if (eofp)
-                                     nil
-                                     (read-number skip-p))))))
+                    (otherwise (or (and (eofp) (and (or junk-allowed (error '<jonathan-unexpected-eof-error> :object string))
+                                                    (return-from dispatch nil)))
+                                   (or (and (integer-char-p (current)) (return-from dispatch (read-number skip-p)))
+                                       (error '<jonathan-incomplete-json-error> :object string))))))
                  (read-object (&optional skip-p force-read-p)
                    (skip-spaces)
-                     (loop until (skip?-or-eof #\})
-                           with result = (when as-hash-table (make-hash-table :test #'equal))
-                           as key = (progn (advance*)
-                                           (let ((string (read-string skip-p)))
-                                             (cond
-                                               ((or (not (or keywords-to-read keyword-normalizer)) force-read-p) string)
-                                               (keyword-normalizer (funcall keyword-normalizer string))
-                                               (t (when (member string keywords-to-read :test #'string=) string)))))
-                           as value = (progn (with-skip-spaces (advance*))
-                                             (dispatch (not key) key))
-                           do (with-skip-spaces (skip? #\,))
-                           when key
-                             do (cond
-                                  ((or as-alist as-jsown) (push (cons key value) result))
-                                  (as-hash-table (setf (gethash key result) value))
-                                  (t (setq result (nconc (list (make-keyword key) value) result))))
-                           finally (return-from read-object
-                                     (if as-jsown
-                                         (cons :obj result)
-                                         result))))
+                   (loop until (skip?-or-eof #\})
+                         with result = (when as-hash-table (make-hash-table :test #'equal))
+                         as key = (progn (advance*)
+                                         (let ((string (read-string skip-p)))
+                                           (cond
+                                             ((or (not (or keywords-to-read keyword-normalizer)) force-read-p) string)
+                                             (keyword-normalizer (funcall keyword-normalizer string))
+                                             (t (when (member string keywords-to-read :test #'string=) string)))))
+                         as value = (progn (with-skip-spaces (advance*))
+                                           (dispatch (not key) key))
+                         do (with-skip-spaces (skip? #\,))
+                         when key
+                           do (cond
+                                ((or as-alist as-jsown) (push (cons key value) result))
+                                (as-hash-table (setf (gethash key result) value))
+                                (t (setq result (nconc (list (make-keyword key) value) result))))
+                         finally (return-from read-object
+                                   (if as-jsown
+                                       (cons :obj result)
+                                       result))))
                  (read-string (&optional skip-p)
                    (if (eofp)
                        ""
-                       (let ((start (pos))
+                       (let ((start (the fixnum (pos)))
                              (escaped-count 0))
-                         (declare (type fixnum start escaped-count))
                          (with-allowed-last-character (#\")
                            (skip-while (lambda (c)
                                          (or (and (char= c #\\) (incf escaped-count) (advance*))
@@ -141,8 +140,8 @@
                    (skip-spaces)
                    (when (skip?-or-eof #\])
                      (return-from read-array *empty-array-value*))
-                   (loop collect (prog1 (dispatch skip-p)
-                                   (with-skip-spaces (skip? #\,)))
+                   (loop collect (dispatch skip-p)
+                         do (with-skip-spaces (skip? #\,))
                          until (skip?-or-eof #\])))
                  (read-number (&optional skip-p)
                    (if skip-p
@@ -154,7 +153,7 @@
                         :eof
                           (return-from read-number))
                        (bind (num-str (skip-while integer-char-p))
-                         (let ((num (the fixnum (or (parse-integer num-str :junk-allowed t) 0))))
+                         (let ((num (the fixnum (parse-integer num-str))))
                            (return-from read-number
                              (if (with-allowed-last-character ()
                                    (skip? #\.))
@@ -162,7 +161,7 @@
                                     (block nil
                                       (let ((rest-start (the fixnum (pos))))
                                         (bind (rest-num-str (skip-while integer-char-p))
-                                          (let ((rest-num (the fixnum (or (parse-integer rest-num-str :junk-allowed t) 0))))
+                                          (let ((rest-num (the fixnum (parse-integer rest-num-str))))
                                             (return (the rational (/ rest-num (the fixnum (expt 10 (- (pos) rest-start)))))))))))
                                  (the fixnum num))))))))
           (declare (inline read-object read-string parse-string-with-escaping read-array read-number))

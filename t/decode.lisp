@@ -10,7 +10,7 @@
 
 (diag "jonathan-test.decode")
 
-(plan 19)
+(plan 20)
 
 (defun plist-alist (plist)
   (if (my-plist-p plist)
@@ -144,6 +144,11 @@
   (is-error (parse "{")
             '<jonathan-unexpected-eof-error>
             "without any keys after {."))
+
+(subtest "<jonathan-incomplete-json-error>"
+  (is-error (parse "anything")
+            '<jonathan-incomplete-json-error>
+            "with any other characters."))
 
 (subtest ":junk-allowed t"
   (ok (parse "{\key\":\"value\"" :junk-allowed t)
