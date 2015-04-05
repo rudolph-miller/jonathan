@@ -155,11 +155,14 @@
       "can allow incomplete JSON foramt string."))
 
 (subtest ":keywords-to-read"
-  (is (parse "{\"key1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}" :keywords-to-read '("key1"))
+  (is (parse "{\"key1\":{\"key2\":\"value2\"},\"key3\":\"value3\",\"key4\":1.1,\"key5\":[1,2]}"
+             :keywords-to-read '("key1"))
       '(:|key1| (:|key2| "value2"))
       ":dont-compile NIL.")
 
-  (is (parse "{\"key1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}" :keywords-to-read '("key1") :dont-compile t)
+  (is (parse "{\"key1\":{\"key2\":\"value2\"},\"key3\":\"value3\",\"key4\":1.1,\"key5\":[1,2]}"
+             :keywords-to-read '("key1")
+             :dont-compile t)
       '(:|key1| (:|key2| "value2"))
       ":dont-compile T."))
 
@@ -167,7 +170,8 @@
   (flet ((normalizer (key)
            (when (equal key "key1")
              "other-key")))
-    (is (parse "{\"key1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}" :keyword-normalizer #'normalizer)
+    (is (parse "{\"key1\":{\"key2\":\"value2\"},\"key3\":\"value3\",\"key4\":1.1,\"key5\":[1,2]}"
+               :keyword-normalizer #'normalizer)
         '(:|other-key| (:|key2| "value2"))
         "can normalize keywords.")))
 
