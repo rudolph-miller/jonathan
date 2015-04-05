@@ -35,13 +35,13 @@
         (as-hash-table (eq as :hash-table)))
     (with-vector-parsing (string)
       (macrolet ((with-allowed-last-character ((&optional char) &body body)
-                   (let ((junk-allowed-block (gensym "junk-allowed-block")))
-                     `(block ,junk-allowed-block
+                   (let ((allowed-last-character-block (gensym "allowed-last-character-block")))
+                     `(block ,allowed-last-character-block
                         (tagbody
-                           (return-from ,junk-allowed-block
+                           (return-from ,allowed-last-character-block
                              (progn ,@body))
                          :eof
-                           (return-from ,junk-allowed-block
+                           (return-from ,allowed-last-character-block
                              (or junk-allowed
                                  (if (eq ,char (current))
                                      t
