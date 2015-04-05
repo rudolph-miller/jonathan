@@ -59,7 +59,8 @@
                  (match-and-return (string block value)
                    `(match-case
                      (,string (return-from ,block ,value))
-                     (otherwise (return-from ,block nil)))))
+                     (otherwise (or (and junk-allowed (return-from ,block ,value))
+                                    (error '<jonathan-incomplete-json-error> :object string))))))
         (labels ((dispatch (&optional skip-p force-read-p)
                    (skip-spaces)
                    (match-case
