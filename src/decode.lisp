@@ -25,8 +25,9 @@
                       keywords)
             (otherwise (return-from ,matcher-block))))))))
 
-(defun parse (string &key (as :plist) junk-allowed keywords-to-read matcher-for-keywords)
-  (declare (type simple-string string))
+(defun parse (string &key (as :plist) junk-allowed keywords-to-read matcher-for-keywords dont-compile)
+  (declare (ignore dont-compile)
+           (type simple-string string))
   (let ((as-alist (eq as :alist))
         (as-jsown (eq as :jsown))
         (as-hash-table (eq as :hash-table)))
@@ -178,9 +179,9 @@
           (return-from parse (dispatch)))))))
 
 
-(define-compiler-macro parse (&whole form string &key (as :plist) junk-allowed keywords-to-read matcher-for-keywords)
+(define-compiler-macro parse (&whole form string &key (as :plist) junk-allowed keywords-to-read matcher-for-keywords dont-compile)
   (handler-case
-      (if (and keywords-to-read (not matcher-for-keywords))
+      (if (and keywords-to-read (not matcher-for-keywords) (not dont-compile))
           `(parse ,string :as ,as
                           :junk-allowed ,junk-allowed
                           :keywords-to-read ,keywords-to-read

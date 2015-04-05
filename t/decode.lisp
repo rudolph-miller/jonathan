@@ -152,6 +152,10 @@
 (subtest ":keywords-to-read"
   (is (parse "{\"key1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}" :keywords-to-read '("key1"))
       '(:|key1| (:|key2| "value2"))
-      "can restrict keywords to read."))
+      ":dont-compile NIL.")
+
+  (is (parse "{\"key1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}" :keywords-to-read '("key1") :dont-compile t)
+      '(:|key1| (:|key2| "value2"))
+      ":dont-compile T."))
 
 (finalize)
