@@ -113,12 +113,10 @@
                                (if (= escaped-count 0)
                                    (subseq string start (pos))
                                    (parse-string-with-escaping start escaped-count)))
-                           (skip?-or-eof #\")))))
+                           (advance*)))))
                  (parse-string-with-escaping (start escaped-count)
                    (declare (type fixnum start escaped-count))
-                   (loop with result = (make-array (- (pos) start escaped-count)
-                                                   :element-type 'character
-                                                   :adjustable nil)
+                   (loop with result = (make-string (- (pos) start escaped-count))
                          with result-index = 0
                          with escaped-p
                          for index from start below (pos)
