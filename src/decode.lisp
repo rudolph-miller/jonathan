@@ -172,9 +172,12 @@
 (define-compiler-macro parse (&whole form string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer dont-compile)
   (handler-case
       (if (and keywords-to-read (not keyword-normalizer) (not dont-compile))
-          `(parse ,string :as ,as
-                          :junk-allowed ,junk-allowed
-                          :keywords-to-read ,keywords-to-read
-                          :keyword-normalizer (make-normalizer ,(eval keywords-to-read)))
+          (let ((keywords (eval keywords-to-read)))
+            (unless (every #'stringp keywords)
+              (error 'simple-error))
+            `(parse ,string :as ,as
+                            :junk-allowed ,junk-allowed
+                            :keywords-to-read ,keywords-to-read
+                            :keyword-normalizer (make-normalizer ,keywords)))
           form)
     (error () form)))
