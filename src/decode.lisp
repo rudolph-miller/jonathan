@@ -81,7 +81,7 @@
                                             (cond
                                               ((or (not keywords-to-read) force-read-p) string)
                                               (matcher-for-keywords (when (funcall matcher-for-keywords string) string))
-                                              (t (member string keywords-to-read :test #'string=) string))))
+                                              (t (when (member string keywords-to-read :test #'string=) string)))))
                          for value = (progn (skip-spaces)
                                             (advance*)
                                             (skip-spaces)
