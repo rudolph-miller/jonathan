@@ -14,18 +14,18 @@
 (defvar *null-value* nil)
 (defvar *empty-array-value* nil)
 
-(defmacro make-matcher (keywords)
-  (let ((matcher-block (gensym)))
+(defmacro make-normalizer (keywords)
+  (let ((normalizer-block (gensym)))
     `(lambda (key)
-       (block ,matcher-block
+       (block ,normalizer-block
          (with-vector-parsing (key)
            (match-case
             ,@(mapcar #'(lambda (key)
-                          `(,key (return-from ,matcher-block t)))
+                          `(,key (return-from ,normalizer-block ,key)))
                       keywords)
-            (otherwise (return-from ,matcher-block))))))))
+            (otherwise (return-from ,normalizer-block))))))))
 
-(defun parse (string &key (as :plist) junk-allowed keywords-to-read matcher-for-keywords dont-compile)
+(defun parse (string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer dont-compile)
   (declare (ignore dont-compile)
            (type simple-string string))
   (let ((as-alist (eq as :alist))
@@ -80,8 +80,8 @@
                          for key = (progn (advance*)
                                           (let ((string (read-string skip-p)))
                                             (cond
-                                              ((or (not keywords-to-read) force-read-p) string)
-                                              (matcher-for-keywords (when (funcall matcher-for-keywords string) string))
+                                              ((or (not (or keywords-to-read keyword-normalizer)) force-read-p) string)
+                                              (keyword-normalizer (funcall keyword-normalizer string))
                                               (t (when (member string keywords-to-read :test #'string=) string)))))
                          for value = (progn (skip-spaces)
                                             (advance*)
@@ -179,12 +179,12 @@
           (return-from parse (dispatch)))))))
 
 
-(define-compiler-macro parse (&whole form string &key (as :plist) junk-allowed keywords-to-read matcher-for-keywords dont-compile)
+(define-compiler-macro parse (&whole form string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer dont-compile)
   (handler-case
-      (if (and keywords-to-read (not matcher-for-keywords) (not dont-compile))
+      (if (and keywords-to-read (not keyword-normalizer) (not dont-compile))
           `(parse ,string :as ,as
                           :junk-allowed ,junk-allowed
                           :keywords-to-read ,keywords-to-read
-                          :matcher-for-keywords (make-matcher ,(eval keywords-to-read)))
+                          :keyword-normalizer (make-normalizer ,(eval keywords-to-read)))
           form)
     (error () form)))

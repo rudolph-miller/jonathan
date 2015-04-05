@@ -142,6 +142,7 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
 - can allow junked JSON format string (`:junk-allowed t`)
 - can customize `*null-value*`, `*false-value*` and `*empty-array-value*`.
 - can restrict keywords to read. (`:keywords-to-read`)
+- can normalize keywords. (`:keyword-normalizer`)
 
 ```Lisp
 (parse "{\"key\":\"value\"}")
@@ -161,6 +162,12 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
 
 (parse "{\"key1\":\"value1\",\"key2\":\"value2\"}" :keywords-to-read '("key1"))
 ;; => (:|key1| "value1")
+
+(flet ((normalizer (key)
+         (when (equal key "key1")
+           "other-key")))
+  (parse "{\"key1\":\"value1\",\"key2\":\"value2\"}" :keyword-normalizer #'normalizer))
+;; => (:|other-key| "value1")
 ```
 
 ![Benchmark of parse](./images/parse.png)

@@ -10,7 +10,7 @@
 
 (diag "jonathan-test.decode")
 
-(plan 18)
+(plan 19)
 
 (defun plist-alist (plist)
   (if (my-plist-p plist)
@@ -157,5 +157,13 @@
   (is (parse "{\"key1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}" :keywords-to-read '("key1") :dont-compile t)
       '(:|key1| (:|key2| "value2"))
       ":dont-compile T."))
+
+(subtest ":keyword-normalizer"
+  (flet ((normalizer (key)
+           (when (equal key "key1")
+             "other-key")))
+    (is (parse "{\"key1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}" :keyword-normalizer #'normalizer)
+        '(:|other-key| (:|key2| "value2"))
+        "can normalize keywords.")))
 
 (finalize)
