@@ -53,7 +53,7 @@
                       ,@body
                       (skip-spaces)))
                  (skip?-or-eof (char)
-                   `(with-allowed-last-character (,char)
+                   `(wIth-allowed-last-character (,char)
                       (or (skip? ,char)
                           (when (eofp) (go :eof))))))
         (labels ((dispatch (&optional skip-p force-read-p)
@@ -137,6 +137,9 @@
                                       (#\t #\Tab)
                                       (t char)))
                               (incf result-index)
+                              (when (zerop (decf escaped-count))
+                                (return-from parse-string-with-escaping
+                                  (replace result (subseq string (1+ index)) :start1 result-index)))
                          else
                            if (char= char #\\)
                              do (setf escaped-p t)
