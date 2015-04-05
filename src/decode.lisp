@@ -27,7 +27,9 @@
 
 (defun parse (string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer dont-compile)
   (declare (ignore dont-compile)
-           (type simple-string string))
+           (type simple-string string)
+           (type (or null function) keyword-normalizer)
+           (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (let ((as-alist (eq as :alist))
         (as-jsown (eq as :jsown))
         (as-hash-table (eq as :hash-table)))
@@ -81,7 +83,7 @@
                          as key = (progn (advance*)
                                          (let ((string (read-string skip-p)))
                                            (cond
-                                             ((or (not (or keywords-to-read keyword-normalizer)) force-read-p) string)
+                                             ((or (not (or keyword-normalizer keywords-to-read)) force-read-p skip-p) string)
                                              (keyword-normalizer (funcall keyword-normalizer string))
                                              (t (when (member string keywords-to-read :test #'string=) string)))))
                          as value = (progn (with-skip-spaces (advance*))
@@ -99,20 +101,21 @@
                  (read-string (&optional skip-p)
                    (if (eofp)
                        ""
-                       (let ((start (the fixnum (pos)))
+                       (let ((start (pos))
                              (escaped-count 0))
+                         (declare (type fixnum start escaped-count))
                          (with-allowed-last-character (#\")
                            (skip-while (lambda (c)
                                          (or (and (char= c #\\) (incf escaped-count) (advance*))
                                              (char/= c #\")))))
                          (prog1
-                             (if skip-p
-                                 nil
-                                 (if (= escaped-count 0)
-                                     (subseq string start (pos))
-                                     (parse-string-with-escaping start escaped-count)))
+                             (unless skip-p
+                               (if (= escaped-count 0)
+                                   (subseq string start (pos))
+                                   (parse-string-with-escaping start escaped-count)))
                            (skip?-or-eof #\")))))
                  (parse-string-with-escaping (start escaped-count)
+                   (declare (type fixnum start escaped-count))
                    (loop with result = (make-array (- (pos) start escaped-count)
                                                    :element-type 'character
                                                    :adjustable nil)
@@ -133,7 +136,8 @@
                               (incf result-index)
                               (when (zerop (decf escaped-count))
                                 (return-from parse-string-with-escaping
-                                  (replace result (subseq string (1+ index)) :start1 result-index)))
+                                  (replace result (the (simple-array character (*)) (subseq string (1+ index)))
+                                           :start1 result-index)))
                          else
                            if (char= char #\\)
                              do (setf escaped-p t)
@@ -143,18 +147,16 @@
                          finally (return result)))
                  (read-array (&optional skip-p)
                    (skip-spaces)
-                   (when (skip?-or-eof #\])
-                     (return-from read-array *empty-array-value*))
-                   (loop collect (dispatch skip-p)
-                         do (with-skip-spaces (skip? #\,))
-                         until (skip?-or-eof #\])))
+                   (or (loop until (skip?-or-eof #\])
+                             collect (dispatch skip-p)
+                             do (with-skip-spaces (skip? #\,)))
+                       *empty-array-value*))
                  (read-number (&optional skip-p)
                    (if skip-p
                        (tagbody
                           (skip-while integer-char-p)
                           (when (skip? #\.)
                             (skip-while integer-char-p))
-                          (return-from read-number)
                         :eof
                           (return-from read-number))
                        (bind (num-str (skip-while integer-char-p))
