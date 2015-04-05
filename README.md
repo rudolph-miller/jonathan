@@ -143,6 +143,7 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
 - can customize `*null-value*`, `*false-value*` and `*empty-array-value*`.
 - can restrict keywords to read. (`:keywords-to-read`)
 - can normalize keywords. (`:keyword-normalizer`)
+  - can not normalize keywords in nested objects.
 
 ```Lisp
 (parse "{\"key\":\"value\"}")
