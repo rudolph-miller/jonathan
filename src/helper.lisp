@@ -96,20 +96,15 @@
 (defun collect-variables (list)
   (remove-duplicates
    (if (consp list)
-       (if (and (symbolp (car list))
-                (let ((name (symbol-name (car list))))
-                  (or (equal name "QUASIQUOTE")
-                      (equal name "PROGN"))))
+       (if (and (atom (car list))
+                (symbolp (car list))
+                (special-operator-p (car list)))
            (collect-variables (cdr list))
-           (if (and (atom (car list))
-                    (symbolp (car list))
-                    (special-operator-p (car list)))
-               nil
-               (loop for item on list
-                     nconc (collect-variables (car item))
-                     when (and (not (consp (cdr item))) (not (null (cdr item))))
-                       nconc (collect-variables (cdr item))
-                     while (consp (cdr item)))))
+           (loop for item on list
+                 nconc (collect-variables (car item))
+                 when (and (not (consp (cdr item))) (not (null (cdr item))))
+                   nconc (collect-variables (cdr item))
+                 while (consp (cdr item))))
        (ensure-list (variable-p list)))))
 
 (define-compiler-macro to-json (&whole form args &key from octets dont-compile)
