@@ -68,7 +68,13 @@
     (is (sample "Rudolph")
         #(123 34 78 65 77 69 34 58 34 82 117 100 111 108 112 104 34 125)
         "with quasiquote."
-        :test #'equalp)))
+        :test #'equalp))
 
+  (flet ((sample (name)
+           (to-json (progn (list (cons :name name))) :from :alist :octets t)))
+    (is (sample "Rudolph")
+        #(123 34 78 65 77 69 34 58 34 82 117 100 111 108 112 104 34 125)
+        "with progn."
+        :test #'equalp)))
 
 (finalize)
