@@ -97,8 +97,9 @@
   (remove-duplicates
    (if (consp list)
        (if (and (symbolp (car list))
-                (equal (symbol-name (car list))
-                       "QUASIQUOTE"))
+                (let ((name (symbol-name (car list))))
+                  (or (equal name "QUASIQUOTE")
+                      (equal name "PROGN"))))
            (collect-variables (cdr list))
            (if (and (atom (car list))
                     (symbolp (car list))
