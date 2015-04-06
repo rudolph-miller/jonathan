@@ -79,7 +79,11 @@
                                        (error '<jonathan-incomplete-json-error> :object string))))))
                  (read-object (&optional skip-p force-read-p)
                    (skip-spaces)
-                   (loop until (skip?-or-eof #\})
+                   (loop initially (and (with-allowed-last-character ()
+                                          (or (and (eofp) (go :eof))
+                                              (and (eql (current) #\})
+                                                   (progn (advance*) (return-from read-object)))))
+                                        (return-from read-object))
                          with result = (when as-hash-table (make-hash-table :test #'equal))
                          as key = (progn (advance*)
                                          (let ((string (read-string skip-p)))
@@ -89,12 +93,13 @@
                                              (t (when (member string keywords-to-read :test #'string=) string)))))
                          as value = (and (with-skip-spaces (advance*))
                                          (dispatch (not key) key))
-                         do (with-skip-spaces (skip? #\,))
                          when key
                            do (cond
                                 ((or as-alist as-jsown) (push (cons key value) result))
                                 (as-hash-table (setf (gethash key result) value))
                                 (t (setq result (nconc (list (make-keyword key) value) result))))
+                         until (and (not (with-skip-spaces (skip? #\,)))
+                                    (skip?-or-eof #\}))
                          finally (return-from read-object
                                    (if as-jsown
                                        (cons :obj result)
