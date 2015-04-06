@@ -176,7 +176,8 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
            (match-i-case
              ("key1" (return-from normalizer "other-key"))
              (otherwise (return-from normalizer nil))))))
-  (parse "{\"KEY1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}" :keyword-normalizer #'normalizer))
+  (parse "{\"KEY1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}"
+         :keyword-normalizer #'normalizer))
 ;; => (:|other-key| (:|key2| "value2"))
 ```
 
