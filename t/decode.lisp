@@ -151,7 +151,7 @@
             "with any other characters."))
 
 (subtest ":junk-allowed t"
-  (ok (parse "{\key\":\"value\"" :junk-allowed t)
+  (ok (parse "{\"key\":\"value\"" :junk-allowed t)
       "can allow incomplete JSON foramt string."))
 
 (subtest ":keywords-to-read"

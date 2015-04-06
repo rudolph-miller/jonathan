@@ -34,19 +34,20 @@
         (as-jsown (eq as :jsown))
         (as-hash-table (eq as :hash-table)))
     (with-vector-parsing (string)
-      (macrolet ((with-allowed-last-character ((&optional char) &body body)
-                   (let ((allowed-last-character-block (gensym "allowed-last-character-block")))
+      (macrolet ((with-allowed-last-character ((&optional char &key block (return-value t)) &body body)
+                   (let* ((allowed-last-character-block (gensym "allowed-last-character-block")))
                      `(block ,allowed-last-character-block
                         (tagbody
                            (return-from ,allowed-last-character-block
                              (progn ,@body))
                          :eof
-                           (return-from ,allowed-last-character-block
-                             (or junk-allowed
-                                 (if (eq ,char (current))
-                                     t
-                                     (error '<jonathan-unexpected-eof-error>
-                                            :object string))))))))
+                           (or (and junk-allowed (return-from ,(or block allowed-last-character-block) ,return-value))
+                               ,(if char
+                                    `(if (eq ,char (current))
+                                         (return-from ,(or block allowed-last-character-block) ,return-value)
+                                         (error '<jonathan-unexpected-eof-error>
+                                                :object string))
+                                    `(error '<jonathan-unexpected-eof-error> :object string)))))))
                  (skip-spaces ()
                    `(skip* #\Space #\Newline #\Tab))
                  (with-skip-spaces (&body body)
@@ -59,6 +60,9 @@
                    `(wIth-allowed-last-character (,char)
                       (or (skip? ,char)
                           (when (eofp) (go :eof)))))
+                 (return-when-eof (block &key (return-value t))
+                   `(with-allowed-last-character (nil :block ,block :return-value ,return-value)
+                      (when (eofp) (go :eof))))
                  (match-and-return (string block value)
                    `(match-case
                      (,string (return-from ,block ,value))
@@ -73,17 +77,13 @@
                     ("t" (match-and-return "rue" dispatch t))
                     ("f" (match-and-return "alse" dispatch *false-value*))
                     ("n" (match-and-return "ull" dispatch *null-value*))
-                    (otherwise (or (and (eofp) (and (or junk-allowed (error '<jonathan-unexpected-eof-error> :object string))
-                                                    (return-from dispatch nil)))
-                                   (or (and (integer-char-p (current)) (return-from dispatch (read-number skip-p)))
-                                       (error '<jonathan-incomplete-json-error> :object string))))))
+                    (otherwise (or (and (integer-char-p (current)) (return-from dispatch (read-number skip-p)))
+                                   (error '<jonathan-incomplete-json-error> :object string)))))
                  (read-object (&optional skip-p force-read-p)
                    (skip-spaces)
-                   (loop initially (and (with-allowed-last-character ()
-                                          (or (and (eofp) (go :eof))
-                                              (and (eql (current) #\})
-                                                   (progn (advance*) (return-from read-object)))))
-                                        (return-from read-object))
+                   (loop initially (with-allowed-last-character (#\} :block read-object)
+                                     (and (return-when-eof read-object :return-value nil)
+                                          (skip? #\})))
                          with result = (when as-hash-table (make-hash-table :test #'equal))
                          as key = (progn (advance*)
                                          (let ((string (read-string skip-p)))
