@@ -52,12 +52,6 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
   - Jsown Object. (`:from :jsown`)
 - can return not only string but also octets.
 - can be compiled by compiler-macro.
-  - The inner of `(to-json ...)` will be calculated in the compile time.
-  - Variables in `(to-json ...)` will be bound to other value in compile time.
-  - You can use variables like `(let ((x "value")) (to-json (list :key x)))`.
-  - Don't write conditional executions in `(to-json ...)`.
-  - If you want to write like `(let ((x t)) (to-json (if x (list :key :value))))`,  
-    use `:dont-compile t` like `(let ((x t)) (to-json (if x (list :key :value)) :dont-compile t))`
 
 ```Lisp
 ;; Restricted Property List Samples

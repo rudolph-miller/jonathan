@@ -46,12 +46,15 @@
 
 (defun normalize-form (object)
   (flet ((uncomma-when-comma (item)
+           #+sbcl
            (if (comma-p item)
-               (convert-form (comma-expr item))
+               (normalize-form (comma-expr item))
                (if (or (keywordp item)
                        (stringp item))
                    item
-                   (list 'quote item))))
+                   (list 'quote item)))
+           #-sbcl
+           (error "Not supported."))
          (make-quote (sym)
            (if (or (keywordp sym)
                    (stringp sym))
@@ -121,7 +124,8 @@
     (when progn-p
       (setq main (progn-form-last main)))
     (multiple-value-bind (form placeholders) (replace-form-with-placeholders (normalize-form main))
-      `(let ((result (list (to-json ,form :from ,from :dont-compile t))))
+      `(let* ((*from* ,from)
+              (result (list (with-output-to-string* (%to-json ,form)))))
          ,@(loop for key being the hash-keys of placeholders
                    using (hash-value val)
                  collecting `(setq result
@@ -186,13 +190,11 @@
                  while (consp (cdr item))))
        (ensure-list (variable-p list)))))
 
-(define-compiler-macro to-json (&whole form args &key from octets dont-compile)
+(define-compiler-macro to-json (&whole form args &key from octets)
   (handler-case
-      (if (not dont-compile)
-          (let ((variables (collect-variables args)))
-            `(progn
-               ,@(eval
-                  `(compile-encoder (:from ,from :octets ,octets :return-form t) ,variables
-                     ,args))))
-          form)
+      (let ((variables (collect-variables args)))
+        `(progn
+           ,@(eval
+              `(compile-encoder (:from ,from :octets ,octets :return-form t) ,variables
+                 ,args))))
     (error () form)))

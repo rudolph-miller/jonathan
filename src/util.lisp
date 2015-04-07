@@ -23,10 +23,8 @@
   (or (char<= #\0 char #\9)
       (char= char #\-)))
 
-
 (defun make-keyword (str)
   (intern str #.(find-package :keyword)))
-
 
 (defun comma-p (comma)
   #+sbcl
@@ -38,10 +36,10 @@
   #+sbcl
   (sb-impl::comma-expr comma)
   #-sbcl
-  (error "Not supported."))
+  nil)
 
 (defvar *quasiquote*
   #+sbcl
   'sb-int:quasiquote
   #-sbcl
-  (error "Not supported."))
+  nil)

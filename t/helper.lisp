@@ -2,12 +2,15 @@
 (defpackage jonathan-test.helper
   (:use :cl
         :prove
-        :jonathan))
+        :jonathan)
+  (:import-from :jonathan.helper
+                :normalize-form
+                :replace-form-with-placeholders))
 (in-package :jonathan-test.helper)
 
 (diag "jonathan-test.helper")
 
-(plan 3)
+(plan 5)
 
 (subtest "with-output-to-string*"
   (is (with-output-to-string*
@@ -16,6 +19,9 @@
       "{\"key\":\"value\"}"
       "can return encoded string."))
 
+(subtest "normalize-form")
+
+(subtest "replace-form-with-placeholders")
 (subtest "compile-encoder"
   (let ((encoder1 (compile-encoder () (value)
                     (list :key value)))
