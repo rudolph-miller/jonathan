@@ -114,12 +114,11 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
                (list :|channel| "lisp-alien"
                      :|username| "alien-bot"
                      :|text| text
-                     :|icon_url| "http://www.lisperati.com/lisplogo_warning2_256.png")
-               :dont-compile t)))
+                     :|icon_url| "http://www.lisperati.com/lisplogo_warning2_256.png"))))
   (time
    (dotimes (_ 100000)
      (post "Post from Alien!"))))
-;; => 0.604
+;; => 0.604 - without compiling `post`.
 
 (flet ((post (text)
          (jsown:to-json
