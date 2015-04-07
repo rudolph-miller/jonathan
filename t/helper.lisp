@@ -143,7 +143,9 @@
         (encoder2 (compile-encoder (:from :alist) (value)
                     `(("key" . ,value))))
         (encoder3 (compile-encoder (:octets t) (value)
-                    (list :key value))))
+                    (list :key value)))
+        (encoder4 (compile-encoder () (value)
+                    (progn (incf value) (list :key value)))))
 
     (is (funcall encoder1 "value")
         "{\"KEY\":\"value\"}"
@@ -157,6 +159,10 @@
         #(123 34 75 69 89 34 58 34 118 97 108 117 101 34 125)
         "with :octets T."
         :test #'equalp)
+
+    (is (funcall encoder4 0)
+        "{\"KEY\":1}"
+        "with PROGN.")
 
     (is-error (eval '(compile-encoder () (value value)))
               'simple-error
