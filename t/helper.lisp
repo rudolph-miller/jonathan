@@ -19,9 +19,119 @@
       "{\"key\":\"value\"}"
       "can return encoded string."))
 
-(subtest "normalize-form")
+(defmacro normalize-form-test (target expected comment &key including-variable)
+  `(is ,(if including-variable
+            `(normalize-form ',target)
+            `(eval (normalize-form ',target)))
+       ,(if including-variable
+            `',expected
+            `(eval ',expected))
+       ,comment))
 
-(subtest "replace-form-with-placeholders")
+(subtest "normalize-form"
+  (normalize-form-test
+   :a
+   :a
+   "with :keyword.")
+
+  (normalize-form-test
+   'a
+   'a
+   "with symbol.")
+
+  (normalize-form-test
+   (list :a :b)
+   (list :a :b)
+   "with list.")
+
+  (normalize-form-test
+   (list* :a :b)
+   (list* :a :b)
+   "with list*.")
+
+  (normalize-form-test
+   '(:a . :b)
+   (list* :a :b)
+   "with dotted pair.")
+
+  (normalize-form-test
+   '(:a :b)
+   (list :a :b)
+   "with QUOTE.")
+
+  (normalize-form-test
+   `(:a :b)
+   (list :a :b)
+   "with QUASIQUOTE.")
+
+  (normalize-form-test
+   (list a b)
+   (list a b)
+   "with variable."
+   :including-variable t)
+
+  (normalize-form-test
+   `(a ,"b")
+   (list 'a "b")
+   "with unquote.")
+
+  (normalize-form-test
+   (list (princ-to-string a))
+   (list (princ-to-string a))
+   "with function."
+   :including-variable t))
+
+(defmacro replace-form-with-placeholders-test (target expected comment)
+  `(is (replace-form-with-placeholders ',target)
+       ',expected
+       ,comment
+       :test #'(lambda (a b)
+                 (if (consp a)
+                     (loop for i in a
+                           for j in b
+                           always (or (and (eql j :placeholder)
+                                           (typep i 'string))
+                                      (equal i j)))
+                     (or (and (eql b :placeholder)
+                              (typep a 'string))
+                         (equal a b))))))
+
+(subtest "replace-form-with-placeholders"
+  (replace-form-with-placeholders-test
+   :a
+   :a
+   "with :keyword.")
+
+  (replace-form-with-placeholders-test
+   'a
+   'a
+   "with QUOTE.")
+
+  (replace-form-with-placeholders-test
+   "a"
+   "a"
+   "with string.")
+
+  (replace-form-with-placeholders-test
+   a
+   :placeholder
+   "with variable.")
+
+  (replace-form-with-placeholders-test
+   (list 'a a)
+   (list 'a :placeholder)
+   "with list.")
+
+  (replace-form-with-placeholders-test
+   (list* 'a a)
+   (list* 'a :placeholder)
+   "with list*.")
+
+  (replace-form-with-placeholders-test
+   (princ-to-string a)
+   :placeholder
+   "with function."))
+
 (subtest "compile-encoder"
   (let ((encoder1 (compile-encoder () (value)
                     (list :key value)))
@@ -60,7 +170,7 @@
            (to-json (list :name name))))
     (is (sample "Rudolph")
         "{\"NAME\":\"Rudolph\"}"
-      "without any keyword arguments."))
+        "without any keyword arguments."))
 
   (flet ((sample (name)
            (to-json (list (cons :name name)) :from :alist :octets t)))

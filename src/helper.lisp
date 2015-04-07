@@ -45,7 +45,7 @@
     t))
 
 (defun normalize-form (object)
-  (flet ((uncomma-when-comma (item)
+  (flet ((unquote-when-comma (item)
            #+sbcl
            (if (comma-p item)
                (normalize-form (comma-expr item))
@@ -78,7 +78,7 @@
                ((proper-list-p (cadr object))
                 (cons 'list (mapcar #'make-quote (cadr object))))
                ((consp (cadr object))
-                (cons 'list* (mapcar #'make-quote (cadr object))))
+                (cons 'list* (map-dotted-list #'make-quote (cadr object))))
                (t object)))
             ((equal sym-name "QUASIQUOTE")
              (cond
@@ -88,11 +88,11 @@
                                           ((proper-list-p item)
                                            (normalize-form (list *quasiquote* item)))
                                           ((consp item)
-                                           (cons 'list* (map-dotted-list #'uncomma-when-comma item)))
-                                          (t (uncomma-when-comma item))))
+                                           (cons 'list* (map-dotted-list #'unquote-when-comma item)))
+                                          (t (unquote-when-comma item))))
                                     (cadr object))))
                ((consp (cadr object))
-                (cons 'list* (map-dotted-list #'uncomma-when-comma (cadr object))))
+                (cons 'list* (map-dotted-list #'unquote-when-comma (cadr object))))
                (t object)))
             (t object)))
         object)))
@@ -163,38 +163,10 @@
                ',body
                (eval `(lambda (,@',args) ,@',body))))))))
 
-(defun variable-p (sym)
-  (handler-case
-      (typecase sym
-        (keyword nil)
-        (symbol (when (or (constantp sym)
-                          (symbol-function sym))
-                  nil))
-        (t (let ((str (princ-to-string sym)))
-             (if (starts-with-subseq "," str)
-                 (intern (subseq str 1))
-                 nil))))
-    (undefined-function () sym)))
-
-(defun collect-variables (list)
-  (remove-duplicates
-   (if (consp list)
-       (if (and (atom (car list))
-                (symbolp (car list))
-                (special-operator-p (car list)))
-           (collect-variables (cdr list))
-           (loop for item on list
-                 nconc (collect-variables (car item))
-                 when (and (not (consp (cdr item))) (not (null (cdr item))))
-                   nconc (collect-variables (cdr item))
-                 while (consp (cdr item))))
-       (ensure-list (variable-p list)))))
-
 (define-compiler-macro to-json (&whole form args &key from octets)
   (handler-case
-      (let ((variables (collect-variables args)))
-        `(progn
-           ,@(eval
-              `(compile-encoder (:from ,from :octets ,octets :return-form t) ,variables
-                 ,args))))
+      `(progn
+         ,@(eval
+            `(compile-encoder (:from ,from :octets ,octets :return-form t) nil
+               ,args)))
     (error () form)))
