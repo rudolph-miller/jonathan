@@ -118,7 +118,7 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
   (time
    (dotimes (_ 100000)
      (post "Post from Alien!"))))
-;; => 0.604 - without compiling `post`.
+;; => 0.604 - without compiler-macro.
 
 (flet ((post (text)
          (jsown:to-json
