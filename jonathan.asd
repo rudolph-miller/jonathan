@@ -11,7 +11,8 @@
                :trivial-types
                :babel
                :proc-parse
-               :cl-ppcre)
+               :cl-ppcre
+               :cl-annot)
   :components ((:module "src"
                 :components
                 ((:file "jonathan" :depends-on ("encode" "decode" "helper" "error"))

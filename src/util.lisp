@@ -3,7 +3,10 @@
   (:use :cl)
   (:export :my-plist-p
            :integer-char-p
-           :make-keyword))
+           :make-keyword
+           :comma-p
+           :comma-expr
+           :*quasiquote*))
 (in-package :jonathan.util)
 
 (defun my-plist-p (list)
@@ -23,3 +26,22 @@
 
 (defun make-keyword (str)
   (intern str #.(find-package :keyword)))
+
+
+(defun comma-p (comma)
+  #+sbcl
+  (sb-impl::comma-p comma)
+  #-sbcl
+  (error "Not supported."))
+
+(defun comma-expr (comma)
+  #+sbcl
+  (sb-impl::comma-expr comma)
+  #-sbcl
+  (error "Not supported."))
+
+(defvar *quasiquote*
+  #+sbcl
+  'sb-int:quasiquote
+  #-sbcl
+  (error "Not supported."))

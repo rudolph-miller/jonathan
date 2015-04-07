@@ -1,6 +1,7 @@
 (in-package :cl-user)
 (defpackage jonathan.helper
   (:use :cl
+        :jonathan.util
         :jonathan.encode)
   (:import-from :babel
                 :string-to-octets)
@@ -13,9 +14,13 @@
   (:import-from :alexandria
                 :length=
                 :ensure-list
+                :last-elt
                 :starts-with-subseq)
   (:import-from :trivial-types
                 :proper-list-p)
+  (:import-from :annot.util
+                :progn-form-last
+                :progn-form-replace-last)
   (:export :with-output-to-string*
            :compile-encoder))
 (in-package :jonathan.helper)
@@ -39,46 +44,120 @@
           (push item passed)))
     t))
 
+(defun normalize-form (object)
+  (flet ((uncomma-when-comma (item)
+           (if (comma-p item)
+               (convert-form (comma-expr item))
+               (if (or (keywordp item)
+                       (stringp item))
+                   item
+                   (list 'quote item))))
+         (make-quote (sym)
+           (if (or (keywordp sym)
+                   (stringp sym))
+               sym
+               (list 'quote sym)))
+         (map-dotted-list (fn list)
+           (loop for (item . rest) on list
+                 collecting (funcall fn item)
+                 when (not (consp rest))
+                   collecting (funcall fn rest))))
+    (if (consp object)
+        (let ((sym-name (symbol-name (car object))))
+          (cond
+            ((or (equal sym-name "LIST")
+                 (equal sym-name "LIST*"))
+             (mapcar #'normalize-form object))
+            ((equal sym-name "CONS")
+             (cons 'list* (cdr object)))
+            ((equal sym-name "QUOTE")
+             (cond
+               ((proper-list-p (cadr object))
+                (cons 'list (mapcar #'make-quote (cadr object))))
+               ((consp (cadr object))
+                (cons 'list* (mapcar #'make-quote (cadr object))))
+               (t object)))
+            ((equal sym-name "QUASIQUOTE")
+             (cond
+               ((proper-list-p (cadr object))
+                (cons 'list (mapcar #'(lambda (item)
+                                        (cond
+                                          ((proper-list-p item)
+                                           (normalize-form (list *quasiquote* item)))
+                                          ((consp item)
+                                           (cons 'list* (map-dotted-list #'uncomma-when-comma item)))
+                                          (t (uncomma-when-comma item))))
+                                    (cadr object))))
+               ((consp (cadr object))
+                (cons 'list* (map-dotted-list #'uncomma-when-comma (cadr object))))
+               (t object)))
+            (t object)))
+        object)))
+
+(defun replace-form-with-placeholders (form)
+  (let ((placeholders (make-hash-table :test #'equal)))
+    (flet ((genstr () (symbol-name (gensym *compile-encoder-prefix*))))
+      (labels ((sub (object)
+                 (etypecase object
+                   (string object)
+                   (keyword object)
+                   (symbol (setf (gethash object placeholders) (genstr)))
+                   (cons (let ((sym-name (symbol-name (car object))))
+                           (cond
+                             ((equal sym-name "LIST*")
+                              (cons 'list* (mapcar #'sub (cdr object))))
+                             ((equal sym-name "LIST")
+                              (cons 'list (mapcar #'sub (cdr object))))
+                             ((equal sym-name "QUOTE")
+                              object)
+                             (t (setf (gethash object placeholders) (genstr)))))))))
+        (values (sub form) placeholders)))))
+
 (defmacro compile-encoder ((&key octets from return-form) (&rest args) &body body)
   (check-args args)
-  `(let* ,(append (mapcar #'(lambda (sym)
-                              (list sym
-                                    (symbol-name (gensym *compile-encoder-prefix*))))
-                          args)
-                  `((result (list (to-json (progn ,@body) :from ,from :dont-compile t)))))
-     ,@(mapcar #'(lambda (sym)
-                   `(setq result
-                          (loop for item in result
-                                when (stringp item)
-                                  do (multiple-value-bind (start end)
-                                         (scan (with-output-to-string*
-                                                 (%to-json ,sym))
-                                               item)
-                                       (when (and start end)
-                                         (setf item
-                                               (list (subseq item 0 start)
-                                                     ',sym
-                                                     (subseq item end)))))
-                                nconc (ensure-list item))))
-               args)
-     (let ((form `(let ((*stream* (load-time-value
-                                   ,(if ,octets
-                                        `(make-output-buffer :output :vector)
-                                        `(make-string-output-stream :element-type 'character))))
-                        (*octets* ,,octets))
-                    ,@(loop for item in result
-                            if (stringp item)
-                              collecting (if ,octets
-                                             `(fast-write-sequence ,(string-to-octets item) *stream*)
-                                             `(write-string ,item *stream*))
-                            else
-                              collecting `(%to-json ,item))
-                    ,(if ,octets
-                         `(finish-output-buffer *stream*)
-                         `(get-output-stream-string *stream*)))))
-       (if ,return-form
-           form
-           (eval `(lambda (,@',args) ,form))))))
+  (let* ((main (last-elt body))
+         (progn-p (and (consp main)
+                       (eql (car main) 'progn))))
+    (when progn-p
+      (setq main (progn-form-last main)))
+    (multiple-value-bind (form placeholders) (replace-form-with-placeholders (normalize-form main))
+      `(let ((result (list (to-json ,form :from ,from :dont-compile t))))
+         ,@(loop for key being the hash-keys of placeholders
+                   using (hash-value val)
+                 collecting `(setq result
+                                   (loop for item in result
+                                         when (stringp item)
+                                           do (multiple-value-bind (start end)
+                                                  (scan (with-output-to-string*
+                                                          (%to-json ,val))
+                                                        item)
+                                                (when (and start end)
+                                                  (setf item
+                                                        (list (subseq item 0 start)
+                                                              ',key
+                                                              (subseq item end)))))
+                                         nconc (ensure-list item))))
+         (let ((form `(let ((*stream* (load-time-value
+                                       ,(if ,octets
+                                            `(make-output-buffer :output :vector)
+                                            `(make-string-output-stream :element-type 'character))))
+                            (*octets* ,,octets))
+                        ,@(loop for item in result
+                                if (stringp item)
+                                  collecting (if ,octets
+                                                 `(fast-write-sequence ,(string-to-octets item) *stream*)
+                                                 `(write-string ,item *stream*))
+                                else
+                                  collecting `(%to-json ,item))
+                        ,(if ,octets
+                             `(finish-output-buffer *stream*)
+                             `(get-output-stream-string *stream*)))))
+           (when ,progn-p
+             (setq form (progn-form-replace-last form ',(last-elt body))))
+           (setf (last-elt ',body) form)
+           (if ,return-form
+               ',body
+               (eval `(lambda (,@',args) ,@',body))))))))
 
 (defun variable-p (sym)
   (handler-case
@@ -89,7 +168,7 @@
                   nil))
         (t (let ((str (princ-to-string sym)))
              (if (starts-with-subseq "," str)
-                 (intern (subseq sym 1))
+                 (intern (subseq str 1))
                  nil))))
     (undefined-function () sym)))
 
@@ -111,8 +190,9 @@
   (handler-case
       (if (not dont-compile)
           (let ((variables (collect-variables args)))
-            (eval
-             `(compile-encoder (:from ,from :octets ,octets :return-form t) ,variables
-                ,args)))
+            `(progn
+               ,@(eval
+                  `(compile-encoder (:from ,from :octets ,octets :return-form t) ,variables
+                     ,args))))
           form)
     (error () form)))
