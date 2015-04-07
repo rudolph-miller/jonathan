@@ -25,9 +25,8 @@
                       keywords)
             (otherwise (return-from ,normalizer-block))))))))
 
-(defun parse (string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer dont-compile)
-  (declare (ignore dont-compile)
-           (type simple-string string)
+(defun parse (string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer)
+  (declare (type simple-string string)
            (type (or null function) keyword-normalizer)
            (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (let ((as-alist (eq as :alist))
@@ -175,9 +174,9 @@
           (return-from parse (dispatch)))))))
 
 
-(define-compiler-macro parse (&whole form string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer dont-compile)
+(define-compiler-macro parse (&whole form string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer)
   (handler-case
-      (if (and keywords-to-read (not keyword-normalizer) (not dont-compile))
+      (if (and keywords-to-read (not keyword-normalizer))
           (let ((keywords (eval keywords-to-read)))
             (unless (every #'stringp keywords)
               (error 'simple-error))
