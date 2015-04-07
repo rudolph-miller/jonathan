@@ -60,9 +60,14 @@
    "with QUOTE.")
 
   (normalize-form-test
-   `(:a :b)
-   (list :a :b)
+   `:a
+   :a
    "with QUASIQUOTE.")
+
+  (normalize-form-test
+   `(:a :b (:c :d))
+   (list :a :b (list :c :d))
+   "with QUASIQUOTE and cons.")
 
   (normalize-form-test
    (list a b)
@@ -71,8 +76,8 @@
    :including-variable t)
 
   (normalize-form-test
-   `(a ,"b")
-   (list 'a "b")
+   `(a . ,"b")
+   (list* 'a "b")
    "with unquote.")
 
   (normalize-form-test
