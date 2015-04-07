@@ -141,6 +141,10 @@
                                                               ',key
                                                               (subseq item end)))))
                                          nconc (ensure-list item))))
+         (setq result (remove-if #'(lambda (item)
+                                     (and (stringp item)
+                                          (length= item 0)))
+                                 result))
          (let ((form `(let ((*stream* (load-time-value
                                        ,(if ,octets
                                             `(make-output-buffer :output :vector)
