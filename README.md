@@ -45,6 +45,12 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
 ;; => #<HASH-TABLE :TEST EQUAL :COUNT 3>
 ```
 
+## Installasion
+
+```Lisp
+(ql:quickload :jonathan)
+```
+
 ## to-json
 - can encode Object into JSON format.
   - Rstricted Property List. (`:from :plist`)
