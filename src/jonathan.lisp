@@ -2,6 +2,7 @@
 (defpackage jonathan
   (:use :cl)
   (:import-from :jonathan.error
+                :<jonathna-error>
                 :<jonathan-unexpected-eof-error>
                 :<jonathan-incomplete-json-error>)
   (:import-from :jonathan.encode
@@ -35,6 +36,7 @@
            :*false-value*
            :*null-value*
            :*empty-array-value*
+           :<jonathna-error>
            :<jonathan-unexpected-eof-error>
            :<jonathan-incomplete-json-error>
            :parse
