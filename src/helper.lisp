@@ -36,11 +36,11 @@
   (let ((passed))
     (dolist (item args)
       (etypecase item
-        (keyword (error (format nil "~s is a keyword, and cannot be used as a local variable." item)))
+        (keyword (error "~s is a keyword, and cannot be used as a local variable." item))
         (symbol t)
-        (t (error (format nil "Required argument is not a symbol: ~s" item))))
+        (t (error "Required argument is not a symbol: ~s" item)))
       (if (member item passed)
-          (error (format nil "The variable ~s occurs more than once in the lambda list." item))
+          (error "The variable ~s occurs more than once in the lambda list." item)
           (push item passed)))
     t))
 
