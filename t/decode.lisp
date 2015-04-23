@@ -5,12 +5,14 @@
         :jonathan.util
         :jonathan)
   (:import-from :alexandria
-                :plist-hash-table))
+                :plist-hash-table)
+  (:import-from :jonathan.decode
+                :foldable-keywords-to-read-p))
 (in-package :jonathan-test.decode)
 
 (diag "jonathan-test.decode")
 
-(plan 20)
+(plan 21)
 
 (defun plist-alist (plist)
   (if (my-plist-p plist)
@@ -173,5 +175,15 @@
                :keyword-normalizer #'normalizer)
         '(:|other-key| (:|key2| "value2"))
         "can normalize keywords.")))
+
+(subtest "foldable-keywords-to-read-p"
+  (ok (foldable-keywords-to-read-p ''("key"))
+      "with QUOTE.")
+
+  (ok (foldable-keywords-to-read-p '(list "key"))
+      "with LIST.")
+
+  (ok (not (foldable-keywords-to-read-p 'x))
+      "with variable."))
 
 (finalize)
