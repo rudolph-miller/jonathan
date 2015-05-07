@@ -162,6 +162,9 @@
 (defmethod %to-json ((number number))
   (%write-string (princ-to-string number)))
 
+(defmethod %to-json ((float float))
+  (%write-string (format nil "~$" float)))
+
 (defmethod %to-json ((ratio ratio))
   (%write-string (princ-to-string (coerce ratio 'float))))
 
