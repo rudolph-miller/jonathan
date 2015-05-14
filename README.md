@@ -112,8 +112,8 @@ It's faster than [jsown](https://github.com/madnificent/jsown) - high performanc
 (flet ((post (text)
          (format nil "{\"channel\":\"lisp-alien\",\"username\":\"alien-bot\",\"text\":~s,\"icon_url\":\"http://www.lisperati.com/lisplogo_warning2_256.png\"}" text)))
   (time
-    (dotimes (_ 100000)
-      (post "Post from Alien!"))))"\"}"))))
+   (dotimes (_ 100000)
+     (post "Post from Alien!"))))"\"}"))))
 ;; => 0.146
 
 (flet ((post (text)
