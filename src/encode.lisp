@@ -24,15 +24,14 @@
            :%write-string))
 (in-package :jonathan.encode)
 
-(declaim (optimize (speed 3) (safety 0) (debug 0)))
-
 (defvar *octets* nil)
 (defvar *from* nil)
 (defvar *stream* nil)
 
 (declaim (inline %write-string))
 (defun %write-string (string)
-  (declare (type simple-string string))
+  (declare (type simple-string string)
+           (optimize (speed 3) (safety 0) (debug 0)))
   (if *octets*
       (loop for c across string
             do (fast-write-byte (char-code c) *stream*))
@@ -41,6 +40,8 @@
 
 (declaim (inline %write-char))
 (defun %write-char (char)
+  (declare (type character char)
+           (optimize (speed 3) (safety 0) (debug 0)))
   (if *octets*
       (fast-write-byte (char-code char) *stream*)
       (write-char char *stream*))
@@ -48,17 +49,30 @@
 
 (declaim (inline string-to-json))
 (defun string-to-json (string)
-  (declare (type simple-string string))
-  (%write-char #\")
-  (loop for char across string
-        do (case char
-             (#\Newline (%write-string "\\n"))
-             (#\Return (%write-string "\\r"))
-             (#\Tab (%write-string "\\t"))
-             (#\" (%write-string "\\\""))
-             (#\\ (%write-string "\\\\"))
-             (t (%write-char char))))
-  (%write-char #\"))
+  (declare (type simple-string string)
+           (optimize (speed 3) (safety 0) (debug 0)))
+  (macrolet ((escape (char pairs)
+               (declare (type list pairs))
+               (let* ((sorted (sort (copy-list pairs) #'char<= :key #'car))
+                      (min-char (caar sorted))
+                      (max-char (caar (last sorted))))
+                 `(if (and (char<= ,char ,max-char)
+                           (char>= ,char ,min-char))
+                      (cond
+                        ,@(mapcar #'(lambda (pair)
+                                      `((char= ,char ,(car pair))
+                                        (%write-string ,(cdr pair))))
+                                  pairs)
+                        (t (%write-char ,char)))
+                      (%write-char ,char)))))
+    (%write-char #\")
+    (loop for char character across string
+          do (escape char ((#\Newline . "\\n")
+                           (#\Return . "\\r")
+                           (#\Tab . "\\t")
+                           (#\" . "\\\"")
+                           (#\\ . "\\\\"))))
+    (%write-char #\")))
 
 (defmacro with-macro-p (list)
   `(and (consp ,list)
@@ -120,24 +134,28 @@
 
 (declaim (inline alist-to-json))
 (defun alist-to-json (list)
+  (declare (optimize (speed 3) (safety 0) (debug 0)))
   (with-object
     (loop for (item rest) on list
           do (write-key-value (car item) (cdr item)))))
 
 (declaim (inline plist-to-json))
 (defun plist-to-json (list)
+  (declare (optimize (speed 3) (safety 0) (debug 0)))
   (with-object
     (loop for (key value) on list by #'cddr
           do (write-key-value key value))))
 
 (declaim (inline list-to-json))
 (defun list-to-json (list)
+  (declare (optimize (speed 3) (safety 0) (debug 0)))
   (with-array
     (loop for item in list
           do (write-item item))))
 
 (defun to-json (obj &key (octets *octets*) (from *from*))
   "Converting object to JSON String."
+  (declare (optimize (speed 3) (safety 0) (debug 0)))
   (let ((*stream* (if octets
                       (make-output-buffer :output :vector)
                       (make-string-output-stream)))
@@ -155,6 +173,9 @@
 
 (defmethod %to-json ((number number))
   (%write-string (princ-to-string number)))
+
+(defmethod %to-json ((float float))
+  (%write-string (format nil "~$" float)))
 
 (defmethod %to-json ((ratio ratio))
   (%write-string (princ-to-string (coerce ratio 'float))))

@@ -120,8 +120,8 @@
     "0.1"
     "with rational.")
 
-(is (to-json 1.1)
-    "1.1"
+(is (to-json 1.1d0)
+    "1.10"
     "with float.")
 
 (is (to-json '(:|Rudolph| "Miller"))
