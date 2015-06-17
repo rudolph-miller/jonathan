@@ -5,7 +5,8 @@
 
 (defsystem jonathan-test
   :author "Rudolph-Miller"
-  :license ""
+  :license "MIT"
+  :description "Tests of Jonathan."
   :depends-on (:jonathan
                :prove)
   :components ((:module "t"
