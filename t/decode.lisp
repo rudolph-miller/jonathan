@@ -12,7 +12,7 @@
 
 (diag "jonathan-test.decode")
 
-(plan 21)
+(plan 23)
 
 (defun plist-alist (plist)
   (if (my-plist-p plist)
@@ -28,6 +28,7 @@
   `(subtest ,comment
      (let ((*false-value* :false)
            (*null-value* :null)
+           (*empty-object-value* :empty)
            (*empty-array-value* :[]))
        (is (parse (to-json ,target))
            (case ,target
@@ -60,22 +61,26 @@
                         *empty-array-value*
                         ,target))))
            ":as :jsown.")
-       (is (parse (to-json ,target) :as :hash-table)
-           (if (my-plist-p ,target)
-               (if (null ,target)
-                   *empty-array-value*
-                   (loop with result = (make-hash-table :test #'equal)
-                         for (key value) on ,target by #'cddr
-                         do (setf (gethash (symbol-name key) result) value)
-                         finally (return result)))
-               (case ,target
+       (flet ((convert-to-hash-result (target)
+               (case target
                  (:false *false-value*)
                  (:null *null-value*)
-                 (t (if (null ,target)
+                 (:empty (make-hash-table :test #'equal))
+                 (t (if (null target)
                         *empty-array-value*
-                        ,target))))
-           ":as :hash-table."
-           :test #'equalp))))
+                        target)))))
+         (is (parse (to-json ,target) :as :hash-table)
+             (if (my-plist-p ,target)
+                 (if (null ,target)
+                     *empty-array-value*
+                     (loop with result = (make-hash-table :test #'equal)
+                           for (key value) on ,target by #'cddr
+                           do (setf (gethash (symbol-name key) result)
+                                    (convert-to-hash-result value))
+                           finally (return result)))
+                 (convert-to-hash-result ,target))
+             ":as :hash-table."
+             :test #'equalp)))))
 
 (parse-test t
             "with T.")
@@ -121,6 +126,12 @@
 
 (parse-test '(:Rudolph "Miller")
             "with object.")
+
+(parse-test :empty
+            "with empty object.")
+
+(parse-test '(:Rudolph :empty)
+            "with object which have empty object in its value part.")
 
 (subtest "<jonathan-unexpected-eof>"
   (is-error (parse "{\key\":\"value\"")

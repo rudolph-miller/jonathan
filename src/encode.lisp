@@ -217,5 +217,8 @@
 (defmethod %to-json ((_ (eql :null)))
   (%write-string "null"))
 
+(defmethod %to-json ((_ (eql :empty)))
+  (%write-string "{}"))
+
 (defmethod %to-json ((_ (eql nil)))
   (%write-string "[]"))

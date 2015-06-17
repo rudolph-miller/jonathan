@@ -22,6 +22,7 @@
   (:import-from :jonathan.decode
                 :*false-value*
                 :*null-value*
+                :*empty-object-value*
                 :*empty-array-value*
                 :parse)
   (:import-from :jonathan.helper
@@ -35,6 +36,7 @@
            :%write-string
            :*false-value*
            :*null-value*
+           :*empty-object-value*
            :*empty-array-value*
            :<jonathna-error>
            :<jonathan-unexpected-eof-error>

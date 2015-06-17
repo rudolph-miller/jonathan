@@ -6,12 +6,14 @@
         :proc-parse)
   (:export :*false-value*
            :*null-value*
+           :*empty-object-value*
            :*empty-array-value*
            :parse))
 (in-package :jonathan.decode)
 
 (defvar *false-value* nil)
 (defvar *null-value* nil)
+(defvar *empty-object-value* nil)
 (defvar *empty-array-value* nil)
 
 (defmacro make-normalizer (keywords)
@@ -29,9 +31,9 @@
   (declare (type simple-string string)
            (type (or null function) keyword-normalizer)
            (optimize (speed 3) (safety 0) (debug 0) (space 0)))
-  (let ((as-alist (eq as :alist))
-        (as-jsown (eq as :jsown))
-        (as-hash-table (eq as :hash-table)))
+  (let* ((as-alist (eq as :alist))
+         (as-jsown (eq as :jsown))
+         (as-hash-table (eq as :hash-table)))
     (with-vector-parsing (string)
       (macrolet ((with-allowed-last-character ((&optional char &key block (return-value t)) &body body)
                    (let* ((allowed-last-character-block (gensym "allowed-last-character-block")))
@@ -63,7 +65,11 @@
                    `(match-case
                      (,string (return-from ,block ,value))
                      (otherwise (or (and junk-allowed (return-from ,block ,value))
-                                    (error '<jonathan-incomplete-json-error> :object string))))))
+                                    (error '<jonathan-incomplete-json-error> :object string)))))
+                 (empty-object ()
+                   `(if as-hash-table
+                        (make-hash-table :test #'equal)
+                        *empty-object-value*)))
         (labels ((dispatch (&optional skip-p force-read-p)
                    (skip-spaces)
                    (match-case
@@ -77,9 +83,9 @@
                                    (error '<jonathan-incomplete-json-error> :object string)))))
                  (read-object (&optional skip-p force-read-p)
                    (skip-spaces)
-                   (loop initially (with-allowed-last-character (#\} :block read-object :return-value nil)
+                   (loop initially (with-allowed-last-character (#\} :block read-object :return-value (empty-object))
                                      (or (and (eofp) (go :eof))
-                                         (skip? #\})))
+                                         (and (skip? #\}) (return-from read-object (empty-object)))))
                          with result = (when as-hash-table (make-hash-table :test #'equal))
                          as key = (progn (advance*)
                                          (let ((string (read-string skip-p)))
