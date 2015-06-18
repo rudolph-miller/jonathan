@@ -7,6 +7,7 @@ machine:
   environment:
     LISP: sbcl
     PATH: ~/.roswell/bin:$PATH
+    COVERALLS: true
 
 dependencies:
   pre:
@@ -19,13 +20,17 @@ dependencies:
     - git clone https://github.com/Rudolph-Miller/roswell-scripts ~/lisp/roswell-scripts
     - cd ~/lisp/roswell-scripts/roswell && ros install gendoc && ros install gh-pages
 
+    - git clone https://github.com/fukamachi/cl-coveralls ~/lisp/cl-coveralls
+    - git clone https://github.com/fukamachi/prove ~/lisp/prove
+    - ros -l ~/lisp/prove/prove.asd install prove
+
   cache_directories:
     - ~/.roswell
     
 test:
   override:
     - ros run -- --version
-    - ros -s prove -e '(or (prove:run :jonathan-test) (uiop:quit -1))'
+    - run-prove t-*.asd
 
 deployment:
   deployment:
