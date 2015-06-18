@@ -1,0 +1,36 @@
+general:
+  branches:
+    ignore:
+      - gh-pages
+
+machine:
+  environment:
+    LISP: sbcl
+    PATH: ~/.roswell/bin:$PATH
+
+dependencies:
+  pre:
+    - curl -L https://raw.githubusercontent.com/snmsts/roswell/master/scripts/install-for-ci.sh | sh
+    - ros run -- --version
+    - git clone https://github.com/CommonDoc/codex ~/lisp/codex
+    - git clone https://github.com/CommonDoc/common-doc ~/lisp/common-doc
+    - git clone https://github.com/CommonDoc/pandocl ~/lisp/pandocl
+    - git clone https://github.com/CommonDoc/parenml ~/lisp/parenml
+    - git clone https://github.com/Rudolph-Miller/roswell-scripts ~/lisp/roswell-scripts
+    - cd ~/lisp/roswell-scripts/roswell && ros install gendoc && ros install gh-pages
+
+  cache_directories:
+    - ~/.roswell
+    
+test:
+  override:
+    - ros run -- --version
+    - ros -s prove -e '(or (prove:run :jonathan-test) (uiop:quit -1))'
+
+deployment:
+  deployment:
+     branch: master
+     commands:
+       - git config --global user.name "Rudolph-Miller"
+       - git config --global user.email "chopsticks.tk.ppfm@gmail.com"
+       - gh-pages
