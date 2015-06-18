@@ -1,6 +1,7 @@
 (in-package :cl-user)
 (defpackage jonathan.decode
   (:use :cl
+        :annot.doc
         :jonathan.error
         :jonathan.util
         :proc-parse)
@@ -11,9 +12,22 @@
            :parse))
 (in-package :jonathan.decode)
 
+(syntax:use-syntax :annot)
+
+@doc
+"LISP value of false."
 (defvar *false-value* nil)
+
+@doc
+"LISP value of null."
 (defvar *null-value* nil)
+
+@doc
+"LISP value of {}."
 (defvar *empty-object-value* nil)
+
+@doc
+"LISP value of []."
 (defvar *empty-array-value* nil)
 
 (defmacro make-normalizer (keywords)
@@ -27,6 +41,8 @@
                       keywords)
             (otherwise (return-from ,normalizer-block))))))))
 
+@doc
+"Convert JSON String to LISP object."
 (defun parse (string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer)
   (declare (type simple-string string)
            (type (or null function) keyword-normalizer)

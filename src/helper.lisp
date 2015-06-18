@@ -1,6 +1,7 @@
 (in-package :cl-user)
 (defpackage jonathan.helper
   (:use :cl
+        :annot.doc
         :jonathan.util
         :jonathan.encode)
   (:import-from :babel
@@ -25,8 +26,12 @@
            :compile-encoder))
 (in-package :jonathan.helper)
 
+(syntax:use-syntax :annot)
+
 (defvar *compile-encoder-prefix* "jonathan-encoder")
 
+@doc
+"Output *stream* as string."
 (defmacro with-output-to-string* (&body body)
   `(with-output-to-string (stream)
      (with-output (stream)
@@ -116,6 +121,8 @@
                              (t (setf (gethash object placeholders) (genstr)))))))))
         (values (sub form) placeholders)))))
 
+@doc
+"Compile encoder."
 (defmacro compile-encoder ((&key octets from return-form) (&rest args) &body body)
   (check-args args)
   (let* ((main (last-elt body))
