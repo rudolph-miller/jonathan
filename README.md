@@ -1,6 +1,6 @@
 # Jonathan
 
-[![Build Status](https://travis-ci.org/Rudolph-Miller/jonathan.svg)](https://travis-ci.org/Rudolph-Miller/jonathan)
+[![Build Status](https://circleci.com/gh/Rudolph-Miller/jonathan.svg?style=shield)](https://circleci.com/gh/Rudolph-Miller/jonathan)
 [![Coverage Status](https://coveralls.io/repos/Rudolph-Miller/jonathan/badge.svg?branch=master)](https://coveralls.io/r/Rudolph-Miller/jonathan?branch=master)
 
 JSON encoder and decoder.  
