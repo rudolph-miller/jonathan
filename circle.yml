@@ -20,6 +20,8 @@ dependencies:
     - git clone https://github.com/Rudolph-Miller/roswell-scripts ~/lisp/roswell-scripts
     - cd ~/lisp/roswell-scripts/roswell && ros install gendoc && ros install gh-pages
 
+    - git clone -b issue/3 https://github.com/Rudolph-Miller/docparser ~/lisp/docparser
+
     - git clone https://github.com/fukamachi/cl-coveralls ~/lisp/cl-coveralls
     - git clone https://github.com/fukamachi/prove ~/lisp/prove
     - ros -l ~/lisp/prove/prove.asd install prove
