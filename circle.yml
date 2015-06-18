@@ -32,7 +32,7 @@ dependencies:
 test:
   override:
     - ros run -- --version
-    - run-prove t-*.asd
+    - run-prove *-test.asd
 
 deployment:
   deployment:
