@@ -12,7 +12,7 @@
 
 (diag "jonathan-test.decode")
 
-(plan 23)
+(plan 24)
 
 (defun plist-alist (plist)
   (if (my-plist-p plist)
@@ -186,6 +186,22 @@
                :keyword-normalizer #'normalizer)
         '(:|other-key| (:|key2| "value2"))
         "can normalize keywords.")))
+
+(subtest ":normalize-all"
+  (flet ((normalizer (key)
+           (when (equal key "key1")
+             "other-key")))
+    (is (parse "{\"key1\":{\"key2\":\"value2\"}}"
+               :keyword-normalizer #'normalizer
+               :normalize-all nil)
+        '(:|other-key| (:|key2| "value2"))
+        "NIL.")
+
+    (is (parse "{\"key1\":{\"key2\":\"value2\"}}"
+               :keyword-normalizer #'normalizer
+               :normalize-all t)
+        '(:|other-key| nil)
+        "T.")))
 
 (subtest "foldable-keywords-to-read-p"
   (ok (foldable-keywords-to-read-p ''("key"))

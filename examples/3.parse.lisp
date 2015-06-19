@@ -36,3 +36,19 @@
   (parse "{\"KEY1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}"
          :keyword-normalizer #'normalizer))
 ;; => (:|other-key| (:|key2| "value2"))
+
+(flet ((normalizer (key)
+         (with-vector-parsing (key)
+           (match-i-case
+             ("key1" (return-from normalizer "other-key"))
+             (otherwise (return-from normalizer nil))))))
+  (parse "{\"KEY1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}"
+         :keyword-normalizer #'normalizer
+         :normalize-all nil)
+  ;; => (:|other-key| (:|key2| "value2"))
+
+  (parse "{\"KEY1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}"
+         :keyword-normalizer #'normalizer
+         :normalize-all t)
+  ;; => (:|other-key| nil)
+  )

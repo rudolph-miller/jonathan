@@ -43,7 +43,7 @@
 
 @doc
 "Convert JSON String to LISP object."
-(defun parse (string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer)
+(defun parse (string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer normalize-all)
   (declare (type simple-string string)
            (type (or null function) keyword-normalizer)
            (optimize (speed 3) (safety 0) (debug 0) (space 0)))
@@ -106,7 +106,11 @@
                          as key = (progn (advance*)
                                          (let ((string (read-string skip-p)))
                                            (cond
-                                             ((or (not (or keyword-normalizer keywords-to-read)) force-read-p skip-p) string)
+                                             ((or (not (or keyword-normalizer keywords-to-read))
+                                                  (and (not normalize-all)
+                                                       force-read-p)
+                                                  skip-p)
+                                              string)
                                              (keyword-normalizer (funcall keyword-normalizer string))
                                              (t (when (member string keywords-to-read :test #'string=) string)))))
                          as value = (and (with-skip-spaces (advance*))
@@ -196,7 +200,7 @@
           (return-from parse (dispatch)))))))
 
 
-(define-compiler-macro parse (&whole form string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer)
+(define-compiler-macro parse (&whole form string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer normalize-all)
   (handler-case
       (if (and (not keyword-normalizer)
                (foldable-keywords-to-read-p keywords-to-read))
@@ -204,7 +208,8 @@
             `(parse ,string :as ,as
                             :junk-allowed ,junk-allowed
                             :keywords-to-read ,keywords-to-read
-                            :keyword-normalizer (make-normalizer ,keywords)))
+                            :keyword-normalizer (make-normalizer ,keywords)
+                            :normalize-all ,normalize-all))
           form)
     (error () form)))
 
