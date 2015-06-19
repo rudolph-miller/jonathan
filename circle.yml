@@ -13,14 +13,13 @@ dependencies:
   pre:
     - curl -L https://raw.githubusercontent.com/snmsts/roswell/master/scripts/install-for-ci.sh | sh
     - ros run -- --version
+    - git clone https://github.com/eudoxia0/docparser ~/lisp/docparser
     - git clone https://github.com/CommonDoc/codex ~/lisp/codex
     - git clone https://github.com/CommonDoc/common-doc ~/lisp/common-doc
     - git clone https://github.com/CommonDoc/pandocl ~/lisp/pandocl
     - git clone https://github.com/CommonDoc/parenml ~/lisp/parenml
     - git clone https://github.com/Rudolph-Miller/roswell-scripts ~/lisp/roswell-scripts
     - cd ~/lisp/roswell-scripts/roswell && ros install gendoc && ros install gh-pages
-
-    - git clone -b issue/3 https://github.com/Rudolph-Miller/docparser ~/lisp/docparser
 
     - git clone https://github.com/fukamachi/cl-coveralls ~/lisp/cl-coveralls
     - git clone https://github.com/fukamachi/prove ~/lisp/prove
