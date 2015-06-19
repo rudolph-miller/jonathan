@@ -23,7 +23,7 @@
                  (:file "decode" :depends-on ("util"))
                  (:file "util")
                  (:file "error"))))
-  :description "JSON encoder and decoder."
+  :description "High performance JSON encoder and decoder."
   :long-description
   #.(with-open-file (stream (merge-pathnames
                              #p"README.md"
