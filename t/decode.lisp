@@ -14,7 +14,6 @@
 
 (plan 28)
 
-(defvar *exponent-value* 123e4)
 (defvar *upper-exponent* (gensym "upper"))
 (defvar *lower-exponent* (gensym "lower"))
 (defvar *exponent-with-plus-sign* (gensym "plus-sign"))
@@ -23,6 +22,11 @@
 (defun exponent-p (obj)
   (when (member obj (list *upper-exponent* *lower-exponent* *exponent-with-plus-sign* *exponent-with-minus-sign*))
     t))
+
+(defun exponent-value (obj)
+  (cond
+    ((eql obj *exponent-with-minus-sign*) 123e-4)
+    (t 123e4)))
 
 (defmethod %to-json ((obj (eql *upper-exponent*)))
   (%write-string "123E4"))
@@ -54,26 +58,28 @@
            (*empty-array-value* :[]))
        (is (parse (to-json ,target))
            (if (exponent-p ,target)
-               *exponent-value*
+               (exponent-value ,target)
                (case ,target
                  (:false *false-value*)
                  (:null *null-value*)
                  (t (if (null ,target)
                         *empty-array-value*
                         ,target))))
-               ":as :plist.")
+           ":as :plist."
+           :test #'equalp)
        (is (parse (to-json ,target) :as :alist)
            (if (my-plist-p ,target)
                (plist-alist ,target)
                (if (exponent-p ,target)
-                   *exponent-value*
+                   (exponent-value ,target)
                    (case ,target
                      (:false *false-value*)
                      (:null *null-value*)
                      (t (if (null ,target)
                             *empty-array-value*
                             ,target)))))
-               ":as :alist.")
+           ":as :alist."
+           :test #'equalp)
        (is (parse (to-json ,target) :as :jsown)
            (if (my-plist-p ,target)
                (let ((alist (plist-alist ,target)))
@@ -81,14 +87,15 @@
                      *empty-array-value*
                      (cons :obj alist)))
                (if (exponent-p ,target)
-                   *exponent-value*
+                   (exponent-value ,target)
                    (case ,target
                      (:false *false-value*)
                      (:null *null-value*)
                      (t (if (null ,target)
                             *empty-array-value*
                             ,target)))))
-           ":as :jsown.")
+           ":as :jsown."
+           :test #'equalp)
        (flet ((convert-to-hash-result (target)
                 (case target
                   (:false *false-value*)
@@ -107,7 +114,7 @@
                                     (convert-to-hash-result value))
                            finally (return result)))
                  (if (exponent-p ,target)
-                     *exponent-value*
+                     (exponent-value ,target)
                      (convert-to-hash-result ,target)))
              ":as :hash-table."
              :test #'equalp)))))
@@ -151,7 +158,7 @@
 (parse-test -1
             "with negative.")
 
-(parse-test (/ 1 10)
+(parse-test 0.1
             "with float.")
 
 (parse-test *upper-exponent*

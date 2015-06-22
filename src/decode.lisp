@@ -185,16 +185,26 @@
                           (return-from read-number))
                        (bind (num-str (skip-while integer-char-p))
                          (let ((num (the fixnum (parse-integer num-str))))
-                           (return-from read-number
-                             (if (with-allowed-last-character ()
+                           (when (with-allowed-last-character ()
                                    (skip? #\.))
-                                 (+ num
-                                    (block nil
-                                      (let ((rest-start (the fixnum (pos))))
-                                        (bind (rest-num-str (skip-while integer-char-p))
-                                          (let ((rest-num (the fixnum (parse-integer rest-num-str))))
-                                            (return (the rational (/ rest-num (the fixnum (expt 10 (- (pos) rest-start)))))))))))
-                                 (the fixnum num))))))))
+                             (setq num
+                                   (block nil
+                                     (let ((rest-start (the fixnum (pos))))
+                                       (bind (rest-num-str (skip-while integer-char-p))
+                                         (let ((rest-num (the fixnum (parse-integer rest-num-str))))
+                                           (return (+ num  (float (/ rest-num (the fixnum (expt 10 (- (pos) rest-start)))))))))))))
+                           (when (with-allowed-last-character ()
+                                   (skip? #\e #\E))
+                             (setq num
+                                   (block nil
+                                     (bind (exp-num-str (skip-while (lambda (char) (or (integer-char-p char)
+                                                                                       (char= char #\+)))))
+                                       (let ((exp-num (the fixnum (parse-integer exp-num-str))))
+                                         (return (* num
+                                                    (if (< exp-num 0)
+                                                        (float (expt 10 exp-num))
+                                                        (expt 10 exp-num)))))))))
+                           (return-from read-number (the fixnum num)))))))
           (declare (inline read-object read-string parse-string-with-escaping read-array read-number))
           (skip-spaces)
           (return-from parse (dispatch)))))))
