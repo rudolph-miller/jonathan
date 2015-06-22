@@ -12,7 +12,7 @@
 
 (diag "jonathan-test.decode")
 
-(plan 28)
+(plan 29)
 
 (defvar *upper-exponent* (gensym "upper"))
 (defvar *lower-exponent* (gensym "lower"))
@@ -251,6 +251,24 @@
                :normalize-all t)
         '(:|other-key| nil)
         "T.")))
+
+(subtest ":exclude-normalize-keys"
+  (flet ((normalizer (key)
+           (when (equal key "key1")
+             "other-key")))
+    (is (parse "{\"key1\":{\"key2\":\"value2\"}}"
+               :keyword-normalizer #'normalizer
+               :normalize-all t
+               :exclude-normalize-keys nil)
+        '(:|other-key| nil)
+        "NIl.")
+
+    (is (parse "{\"key1\":{\"key2\":\"value2\"}}"
+               :keyword-normalizer #'normalizer
+               :normalize-all t
+               :exclude-normalize-keys '("other-key"))
+        '(:|other-key| (:|key2| "value2"))
+        "specified.")))
 
 (subtest "foldable-keywords-to-read-p"
   (ok (foldable-keywords-to-read-p ''("key"))

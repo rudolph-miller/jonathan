@@ -23,7 +23,7 @@
                  (:file "decode" :depends-on ("util"))
                  (:file "util")
                  (:file "error"))))
-  :description "High performance JSON encoder and decoder."
+  :description "High performance JSON encoder and decoder. Currently support: SBCL, CCL."
   :long-description
   #.(with-open-file (stream (merge-pathnames
                              #p"README.md"

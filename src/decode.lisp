@@ -41,15 +41,18 @@
                       keywords)
             (otherwise (return-from ,normalizer-block))))))))
 
+(defvar *inner-nest-p* nil)
+
 @doc
 "Convert JSON String to LISP object."
-(defun parse (string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer normalize-all)
+(defun parse (string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer normalize-all exclude-normalize-keys)
   (declare (type simple-string string)
            (type (or null function) keyword-normalizer)
            (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (let* ((as-alist (eq as :alist))
          (as-jsown (eq as :jsown))
-         (as-hash-table (eq as :hash-table)))
+         (as-hash-table (eq as :hash-table))
+         (*inner-nest-p* nil))
     (with-vector-parsing (string)
       (macrolet ((with-allowed-last-character ((&optional char &key block (return-value t)) &body body)
                    (let* ((allowed-last-character-block (gensym "allowed-last-character-block")))
@@ -85,7 +88,11 @@
                  (empty-object ()
                    `(if as-hash-table
                         (make-hash-table :test #'equal)
-                        *empty-object-value*)))
+                        *empty-object-value*))
+                 (exclude-normalize-key-p (key)
+                   `(and exclude-normalize-keys
+                         (member ,key exclude-normalize-keys :test #'equal)
+                         t)))
         (labels ((dispatch (&optional skip-p force-read-p)
                    (skip-spaces)
                    (match-case
@@ -106,15 +113,16 @@
                          as key = (progn (advance*)
                                          (let ((string (read-string skip-p)))
                                            (cond
+                                             (skip-p nil)
                                              ((or (not (or keyword-normalizer keywords-to-read))
-                                                  (and (not normalize-all)
-                                                       force-read-p)
-                                                  skip-p)
+                                                  force-read-p
+                                                  (and (not normalize-all) *inner-nest-p*))
                                               string)
                                              (keyword-normalizer (funcall keyword-normalizer string))
                                              (t (when (member string keywords-to-read :test #'string=) string)))))
                          as value = (and (with-skip-spaces (advance*))
-                                         (dispatch (not key) key))
+                                         (let ((*inner-nest-p* t))
+                                           (dispatch (not key) (exclude-normalize-key-p key))))
                          when key
                            do (cond
                                 ((or as-alist as-jsown) (push (cons key value) result))
@@ -210,7 +218,8 @@
           (return-from parse (dispatch)))))))
 
 
-(define-compiler-macro parse (&whole form string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer normalize-all)
+(define-compiler-macro parse (&whole form string &key (as :plist) junk-allowed keywords-to-read
+                                     keyword-normalizer normalize-all exclude-normalize-keys)
   (handler-case
       (if (and (not keyword-normalizer)
                (foldable-keywords-to-read-p keywords-to-read))
@@ -219,7 +228,8 @@
                             :junk-allowed ,junk-allowed
                             :keywords-to-read ,keywords-to-read
                             :keyword-normalizer (make-normalizer ,keywords)
-                            :normalize-all ,normalize-all))
+                            :normalize-all ,normalize-all
+                            :exclude-normalize-keys ,exclude-normalize-keys))
           form)
     (error () form)))
 
