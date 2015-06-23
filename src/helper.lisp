@@ -137,17 +137,22 @@
                    using (hash-value val)
                  collecting `(setq result
                                    (loop for item in result
+                                         for matched-p = nil
                                          when (stringp item)
                                            do (multiple-value-bind (start end)
                                                   (scan (with-output-to-string*
                                                           (%to-json ,val))
                                                         item)
                                                 (when (and start end)
-                                                  (setf item
+                                                  (setq matched-p t)
+                                                  (setq item
                                                         (list (subseq item 0 start)
                                                               ',key
                                                               (subseq item end)))))
-                                         nconc (ensure-list item))))
+                                         if matched-p
+                                           nconc (ensure-list item)
+                                         else
+                                           collecting item)))
          (setq result (remove-if #'(lambda (item)
                                      (and (stringp item)
                                           (length= item 0)))

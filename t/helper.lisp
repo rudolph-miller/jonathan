@@ -195,6 +195,13 @@
     (is (sample "Rudolph")
         #(123 34 78 65 77 69 34 58 34 82 117 100 111 108 112 104 34 125)
         "with special-operations."
+        :test #'equalp))
+
+  (flet ((sample (name age)
+           (to-json `((:name . ,(princ-to-string name)) (:age . ,(princ-to-string age))) :from :alist)))
+    (is (sample "Rudolph" 22)
+        "{\"NAME\":\"Rudolph\",\"AGE\":\"22\"}"
+        "with unquote function."
         :test #'equalp)))
 
 (finalize)
