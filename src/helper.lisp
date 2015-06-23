@@ -161,6 +161,7 @@
                                        ,(if ,octets
                                             `(make-output-buffer :output :vector)
                                             `(make-string-output-stream :element-type 'character))))
+                            (*from* ,,from)
                             (*octets* ,,octets))
                         ,@(loop for item in result
                                 if (stringp item)
