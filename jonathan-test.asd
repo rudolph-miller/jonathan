@@ -11,7 +11,7 @@
                :prove)
   :components ((:module "t"
                 :components
-                ((:file "jonathan")
+                ((:test-file "jonathan")
                  (:test-file "util")
                  (:test-file "encode")
                  (:test-file "decode")

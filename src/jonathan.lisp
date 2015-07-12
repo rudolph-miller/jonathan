@@ -1,5 +1,6 @@
 (in-package :cl-user)
 (defpackage jonathan
+  (:nicknames :jojo)
   (:use :cl)
   (:import-from :jonathan.error
                 :<jonathan-error>
