@@ -7,7 +7,7 @@ machine:
   environment:
     LISP: sbcl
     PATH: ~/.roswell/bin:$PATH
-    COVERALLS: true
+    # COVERALLS: true
     COVERAGE_EXCLUDE: t
 
 dependencies:
