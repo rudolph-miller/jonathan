@@ -8,7 +8,7 @@ machine:
     LISP: sbcl
     PATH: ~/.roswell/bin:$PATH
     COVERALLS: true
-    COVERAGE_EXCLUDE: t
+    COVERAGE_EXCLUDE: t:src/error.lisp
 
 dependencies:
   pre:
