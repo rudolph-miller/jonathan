@@ -100,7 +100,7 @@
 
 (is (to-json #("Rudolph" "Miller"))
     "[\"Rudolph\",\"Miller\"]"
-    "with simple-vector.")
+    "with vector.")
 
 (let ((hash (make-hash-table)))
   (setf (gethash :|Rudolph| hash) "Miller")

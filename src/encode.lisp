@@ -226,9 +226,9 @@
      (plist-to-json list))
     (t (list-to-json list))))
 
-(defmethod %to-json ((sv simple-vector))
+(defmethod %to-json ((vector vector))
   (with-array
-    (loop for item across sv
+    (loop for item across vector
           do (write-item item))))
 
 (defmethod %to-json ((hash hash-table))
