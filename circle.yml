@@ -14,6 +14,7 @@ dependencies:
   pre:
     - curl -L https://raw.githubusercontent.com/snmsts/roswell/master/scripts/install-for-ci.sh | sh
     - ros run -- --version
+    - git clone https://github.com/CommonDoc/common-html ~/lisp/common-html
     - git clone https://github.com/eudoxia0/docparser ~/lisp/docparser
     - git clone https://github.com/CommonDoc/codex ~/lisp/codex
     - git clone https://github.com/CommonDoc/common-doc ~/lisp/common-doc
