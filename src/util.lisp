@@ -1,7 +1,8 @@
 (in-package :cl-user)
 (defpackage jonathan.util
   (:use :cl)
-  (:export :my-plist-p
+  (:export :+impl-comma-p+
+           :my-plist-p
            :integer-char-p
            :make-keyword
            :comma-p
@@ -9,12 +10,10 @@
            :*quasiquote*))
 (in-package :jonathan.util)
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  #+sbcl
-  (when (and (find-package :sb-impl)
-             (find-symbol "COMMA-P" :sb-impl)
-             (find-symbol "COMMA-EXPR") :sb-impl)
-    (push :sb-impl-comma *features*)))
+(defparameter +impl-comma-p+ (and (find-package :sb-impl)
+                                (find-symbol "COMMA-P" :sb-impl)
+                                (find-symbol "COMMA-EXPR" :sb-impl)
+                                t))
 
 (defun my-plist-p (list)
   (typecase list
@@ -34,19 +33,15 @@
   (intern str #.(find-package :keyword)))
 
 (defun comma-p (comma)
-  #+sb-impl-comma
-  (sb-impl::comma-p comma)
-  #-sb-impl-comma
-  (error "Not supported."))
+  (if +impl-comma-p+
+      (sb-impl::comma-p comma)
+      (error "Not supported.")))
 
 (defun comma-expr (comma)
-  #+sb-impl-comma
-  (sb-impl::comma-expr comma)
-  #-sb-impl-comma
-  nil)
+  (if +impl-comma-p+
+      (sb-impl::comma-expr comma)
+      nil))
 
-(defvar *quasiquote*
-  #+sb-impl-comma
-  'sb-int:quasiquote
-  #-sb-impl-comma
-  nil)
+(defvar *quasiquote* (if +impl-comma-p+
+                         'sb-int:quasiquote
+                         nil))
