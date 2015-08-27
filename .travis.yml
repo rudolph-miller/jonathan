@@ -18,6 +18,8 @@ env:
 
 install:
   - curl -L https://raw.githubusercontent.com/snmsts/roswell/$ROSWELL_BRANCH/scripts/install-for-ci.sh | sh
+  - ros -e '(ql:update-all-dists :prompt nil)'
+  - git clone https://github.com/rpav/fast-io ~/lisp/fast-io
   - ros install prove
 
 script:
