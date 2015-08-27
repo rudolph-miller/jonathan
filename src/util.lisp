@@ -34,14 +34,14 @@
 
 (defun comma-p (comma)
   (if +impl-comma-p+
-      (sb-impl::comma-p comma)
+      (uiop:symbol-call :sb-impl "COMMA-P" comma)
       (error "Not supported.")))
 
 (defun comma-expr (comma)
   (if +impl-comma-p+
-      (sb-impl::comma-expr comma)
+      (uiop:symbol-call :sb-impl "COMMA-EXPR" comma)
       nil))
 
 (defvar *quasiquote* (if +impl-comma-p+
-                         'sb-int:quasiquote
+                         (find-symbol "QUASIQUOTE" :sb-int)
                          nil))
