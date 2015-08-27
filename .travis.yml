@@ -9,6 +9,7 @@ env:
     - COVERAGE_EXCLUDE=t
   matrix:
     - LISP=sbcl-bin COVERALLS=true
+    - LISP=sbcl/1.1.14
     - LISP=ccl-bin
     - LISP=abcl
     - LISP=clisp
