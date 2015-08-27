@@ -51,15 +51,14 @@
 
 (defun normalize-form (object)
   (flet ((unquote-when-comma (item)
-           #+sbcl
-           (if (comma-p item)
-               (normalize-form (comma-expr item))
-               (if (or (keywordp item)
-                       (stringp item))
-                   item
-                   (list 'quote item)))
-           #-sbcl
-           (error "Not supported."))
+           (if +impl-comma-p+
+               (if (comma-p item)
+                   (normalize-form (comma-expr item))
+                   (if (or (keywordp item)
+                           (stringp item))
+                       item
+                       (list 'quote item)))
+               (error "Not supported.")))
          (make-quote (sym)
            (if (or (keywordp sym)
                    (stringp sym))
