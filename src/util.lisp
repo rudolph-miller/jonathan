@@ -9,6 +9,11 @@
            :*quasiquote*))
 (in-package :jonathan.util)
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  #+sbcl
+  (when (find-package :sb-impl)
+    (push :sb-impl *features*)))
+
 (defun my-plist-p (list)
   (typecase list
     (null t)
@@ -27,19 +32,19 @@
   (intern str #.(find-package :keyword)))
 
 (defun comma-p (comma)
-  #+sbcl
+  #+sb-impl
   (sb-impl::comma-p comma)
-  #-sbcl
+  #-sb-impl
   (error "Not supported."))
 
 (defun comma-expr (comma)
-  #+sbcl
+  #+sb-impl
   (sb-impl::comma-expr comma)
-  #-sbcl
+  #-sb-impl
   nil)
 
 (defvar *quasiquote*
-  #+sbcl
+  #+sb-impl
   'sb-int:quasiquote
-  #-sbcl
+  #-sb-impl
   nil)
