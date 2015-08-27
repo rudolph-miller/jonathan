@@ -11,8 +11,10 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   #+sbcl
-  (when (find-package :sb-impl)
-    (push :sb-impl *features*)))
+  (when (and (find-package :sb-impl)
+             (find-symbol "COMMA-P" :sb-impl)
+             (find-symbol "COMMA-EXPR") :sb-impl)
+    (push :sb-impl-comma *features*)))
 
 (defun my-plist-p (list)
   (typecase list
@@ -32,19 +34,19 @@
   (intern str #.(find-package :keyword)))
 
 (defun comma-p (comma)
-  #+sb-impl
+  #+sb-impl-comma
   (sb-impl::comma-p comma)
-  #-sb-impl
+  #-sb-impl-comma
   (error "Not supported."))
 
 (defun comma-expr (comma)
-  #+sb-impl
+  #+sb-impl-comma
   (sb-impl::comma-expr comma)
-  #-sb-impl
+  #-sb-impl-comma
   nil)
 
 (defvar *quasiquote*
-  #+sb-impl
+  #+sb-impl-comma
   'sb-int:quasiquote
-  #-sb-impl
+  #-sb-impl-comma
   nil)
