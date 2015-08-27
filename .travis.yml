@@ -13,8 +13,8 @@ env:
     - LISP=abcl
     - LISP=clisp
     - LISP=ecl
-    - LISP=allegro
-    - LISP=cmucl
+    # - LISP=allegro
+    # - LISP=cmucl
 
 install:
   - curl -L https://raw.githubusercontent.com/snmsts/roswell/$ROSWELL_BRANCH/scripts/install-for-ci.sh | sh
