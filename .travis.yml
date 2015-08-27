@@ -13,7 +13,7 @@ env:
     - LISP=ccl-bin
     - LISP=abcl
     - LISP=clisp
-    - LISP=ecl
+    # - LISP=ecl
     # - LISP=allegro
     # - LISP=cmucl
 
