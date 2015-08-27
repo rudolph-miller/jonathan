@@ -7,14 +7,14 @@ env:
     - ROSWELL_BRANCH=master
     - ROSWELL_INSTALL_DIR=$HOME/.roswell
     - COVERAGE_EXCLUDE=t
-    matrix:
-      - LISP=sbcl-bin COVERALLS=true
-      - LISP=ccl-bin
-      - LISP=abcl
-      - LISP=clisp
-      - LISP=ecl
-      - LISP=allegro
-      - LISP=cmucl
+  matrix:
+    - LISP=sbcl-bin COVERALLS=true
+    - LISP=ccl-bin
+    - LISP=abcl
+    - LISP=clisp
+    - LISP=ecl
+    - LISP=allegro
+    - LISP=cmucl
 
 install:
   - curl -L https://raw.githubusercontent.com/snmsts/roswell/$ROSWELL_BRANCH/scripts/install-for-ci.sh | sh
