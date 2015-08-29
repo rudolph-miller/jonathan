@@ -81,7 +81,7 @@
                         (t (%write-char ,char)))
                       (%write-char ,char)))))
     (%write-char #\")
-    (loop for char character across string
+    (loop for char of-type character across string
           do (escape char ((#\Newline . "\\n")
                            (#\Return . "\\r")
                            (#\Tab . "\\t")
