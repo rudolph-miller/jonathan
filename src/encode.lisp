@@ -165,8 +165,8 @@
 (defun alist-to-json (list)
   (declare (optimize (speed 3) (safety 0) (debug 0)))
   (with-object
-    (loop for (item rest) on list
-          do (write-key-value (car item) (cdr item)))))
+    (loop for (key . value) in list
+          do (write-key-value key value))))
 
 (declaim (inline plist-to-json))
 (defun plist-to-json (list)
