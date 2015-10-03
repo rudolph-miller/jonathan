@@ -34,7 +34,14 @@
 
 (defun comma-p (comma)
   (if +impl-comma-p+
-      (uiop:symbol-call :sb-impl "COMMA-P" comma)
+      (if (and (uiop:symbol-call :sb-impl "COMMA-P" comma)
+               (= (uiop:symbol-call :sb-impl "COMMA-KIND" comma) 0))
+          ;; (comma-kind comma
+          ;; => 0: just only comma
+          ;;    1: with dot
+          ;;    2: with at
+          t
+          (error "Comma with dot or at is not supported."))
       (error "Not supported.")))
 
 (defun comma-expr (comma)
