@@ -145,7 +145,9 @@
         (encoder3 (compile-encoder (:octets t) (value)
                     (list :key value)))
         (encoder4 (compile-encoder () (value)
-                    (progn (incf value) (list :key value)))))
+                    (progn (incf value) (list :key value))))
+        (encoder5 (compile-encoder () (value)
+                    `(,@(list :key value)))))
 
     (is (funcall encoder1 "value")
         "{\"KEY\":\"value\"}"
@@ -163,6 +165,11 @@
     (is (funcall encoder4 0)
         "{\"KEY\":1}"
         "with PROGN.")
+
+    ;; https://github.com/Rudolph-Miller/jonathan/issues/29
+    (is (funcall encoder5 "value")
+        "{\"KEY\":\"value\"}"
+        "with unsupported comma.")
 
     (is-error (eval '(compile-encoder () (value value)))
               'simple-error

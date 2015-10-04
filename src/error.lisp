@@ -3,7 +3,8 @@
   (:use :cl)
   (:export :<jonathan-error>
            :<jonathan-unexpected-eof-error>
-           :<jonathan-incomplete-json-error>))
+           :<jonathan-incomplete-json-error>
+           :<jonathan-not-supported-error>))
 (in-package :jonathan.error)
 
 (define-condition <jonathan-error> (simple-error)
@@ -25,3 +26,11 @@
      (with-slots (object) condition
        (format stream "Incomplete JSON string:~%~a~%" object))))
   (:documentation "Incomplete JSON string error."))
+
+(define-condition <jonathan-not-supported-error> (<jonathan-error>)
+  ((object :initarg :object :documentation "Not supported object slot."))
+  (:report
+   (lambda (condition stream)
+     (declare (ignore condition))
+     (with-slots (object) condition
+       (format stream "~a is not supported." object)))))

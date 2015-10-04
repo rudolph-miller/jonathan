@@ -2,6 +2,7 @@
 (defpackage jonathan.helper
   (:use :cl
         :annot.doc
+        :jonathan.error
         :jonathan.util
         :jonathan.encode)
   (:import-from :babel
@@ -129,55 +130,60 @@
                        (eql (car main) 'progn))))
     (when progn-p
       (setq main (progn-form-last main)))
-    (multiple-value-bind (form placeholders) (replace-form-with-placeholders (normalize-form main))
-      `(let* ((*from* ,from)
-              (result (list (with-output-to-string* (%to-json ,form)))))
-         ,@(loop for key being the hash-keys of placeholders
-                   using (hash-value val)
-                 collecting `(setq result
-                                   (loop for item in result
-                                         for matched-p = nil
-                                         when (stringp item)
-                                           do (multiple-value-bind (start end)
-                                                  (scan (with-output-to-string*
-                                                          (%to-json ,val))
-                                                        item)
-                                                (when (and start end)
-                                                  (setq matched-p t)
-                                                  (setq item
-                                                        (list (subseq item 0 start)
-                                                              ',key
-                                                              (subseq item end)))))
-                                         if matched-p
-                                           nconc (ensure-list item)
-                                         else
-                                           collecting item)))
-         (setq result (remove-if #'(lambda (item)
-                                     (and (stringp item)
-                                          (length= item 0)))
-                                 result))
-         (let ((form `(let ((*stream* (load-time-value
-                                       ,(if ,octets
-                                            `(make-output-buffer :output :vector)
-                                            `(make-string-output-stream :element-type 'character))))
-                            (*from* ,,from)
-                            (*octets* ,,octets))
-                        ,@(loop for item in result
-                                if (stringp item)
-                                  collecting (if ,octets
-                                                 `(fast-write-sequence ,(string-to-octets item) *stream*)
-                                                 `(write-string ,item *stream*))
-                                else
-                                  collecting `(%to-json ,item))
-                        ,(if ,octets
-                             `(finish-output-buffer *stream*)
-                             `(get-output-stream-string *stream*)))))
-           (when ,progn-p
-             (setq form (progn-form-replace-last form ',(last-elt body))))
-           (setf (last-elt ',body) form)
-           (if ,return-form
-               ',body
-               (eval `(lambda (,@',args) ,@',body))))))))
+    (handler-case
+        (multiple-value-bind (form placeholders) (replace-form-with-placeholders (normalize-form main))
+          `(let* ((*from* ,from)
+                  (result (list (with-output-to-string* (%to-json ,form)))))
+             ,@(loop for key being the hash-keys of placeholders
+                       using (hash-value val)
+                     collecting `(setq result
+                                       (loop for item in result
+                                             for matched-p = nil
+                                             when (stringp item)
+                                               do (multiple-value-bind (start end)
+                                                      (scan (with-output-to-string*
+                                                              (%to-json ,val))
+                                                            item)
+                                                    (when (and start end)
+                                                      (setq matched-p t)
+                                                      (setq item
+                                                            (list (subseq item 0 start)
+                                                                  ',key
+                                                                  (subseq item end)))))
+                                             if matched-p
+                                               nconc (ensure-list item)
+                                             else
+                                               collecting item)))
+             (setq result (remove-if #'(lambda (item)
+                                         (and (stringp item)
+                                              (length= item 0)))
+                                     result))
+             (let ((form `(let ((*stream* (load-time-value
+                                           ,(if ,octets
+                                                `(make-output-buffer :output :vector)
+                                                `(make-string-output-stream :element-type 'character))))
+                                (*from* ,,from)
+                                (*octets* ,,octets))
+                            ,@(loop for item in result
+                                    if (stringp item)
+                                      collecting (if ,octets
+                                                     `(fast-write-sequence ,(string-to-octets item) *stream*)
+                                                     `(write-string ,item *stream*))
+                                    else
+                                      collecting `(%to-json ,item))
+                            ,(if ,octets
+                                 `(finish-output-buffer *stream*)
+                                 `(get-output-stream-string *stream*)))))
+               (when ,progn-p
+                 (setq form (progn-form-replace-last form ',(last-elt body))))
+               (setf (last-elt ',body) form)
+               (if ,return-form
+                   ',body
+                   (eval `(lambda (,@',args) ,@',body))))))
+      (<jonathan-not-supported-error> ()
+        (if return-form
+            'body
+            `(lambda (,@args) (to-json ,@body :from ,from :octets ,octets)))))))
 
 (define-compiler-macro to-json (&whole form args &key from octets)
   (handler-case

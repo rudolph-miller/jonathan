@@ -1,6 +1,7 @@
 (in-package :cl-user)
 (defpackage jonathan.util
-  (:use :cl)
+  (:use :cl
+        :jonathan.error)
   (:export :+impl-comma-p+
            :my-plist-p
            :integer-char-p
@@ -34,15 +35,15 @@
 
 (defun comma-p (comma)
   (if +impl-comma-p+
-      (if (and (uiop:symbol-call :sb-impl "COMMA-P" comma)
-               (= (uiop:symbol-call :sb-impl "COMMA-KIND" comma) 0))
-          ;; (comma-kind comma
-          ;; => 0: just only comma
-          ;;    1: with dot
-          ;;    2: with at
-          t
-          (error "Comma with dot or at is not supported."))
-      (error "Not supported.")))
+      (when (uiop:symbol-call :sb-impl "COMMA-P" comma)
+        (if (= (uiop:symbol-call :sb-impl "COMMA-KIND" comma) 0)
+            ;; (comma-kind comma
+            ;; => 0: just only comma
+            ;;    1: with dot
+            ;;    2: with at
+            t
+            (error '<jonathan-not-supported-error> :object "Comma with dot or at")))
+      (error '<jonathan-not-supported-error> :object " Comma")))
 
 (defun comma-expr (comma)
   (if +impl-comma-p+

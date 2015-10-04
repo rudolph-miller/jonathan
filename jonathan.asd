@@ -18,10 +18,10 @@
   :components ((:module "src"
                 :components
                 ((:file "jonathan" :depends-on ("encode" "decode" "helper" "error"))
-                 (:file "helper" :depends-on ("encode" "decode"))
+                 (:file "helper" :depends-on ("encode" "decode" "error"))
                  (:file "encode" :depends-on ("util" "error"))
                  (:file "decode" :depends-on ("util"))
-                 (:file "util")
+                 (:file "util" :depends-on ("error"))
                  (:file "error"))))
   :description "High performance JSON encoder and decoder. Currently support: SBCL, CCL."
   :long-description
