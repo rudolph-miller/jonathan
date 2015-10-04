@@ -182,8 +182,8 @@
                    (eval `(lambda (,@',args) ,@',body))))))
       (<jonathan-not-supported-error> ()
         (if return-form
-            'body
-            `(lambda (,@args) (to-json ,@body :from ,from :octets ,octets)))))))
+            ``(to-json (progn ,@',body) :from ,',from :octets ,',octets)
+            `(lambda (,@args) (to-json (progn ,@body) :from ,from :octets ,octets)))))))
 
 (define-compiler-macro to-json (&whole form args &key from octets)
   (handler-case
