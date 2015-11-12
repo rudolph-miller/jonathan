@@ -50,5 +50,14 @@
   (parse "{\"KEY1\":{\"key2\":\"value2\"},\"key3\":\"value3\"}"
          :keyword-normalizer #'normalizer
          :normalize-all t)
-  ;; => (:|other-key| nil)
-  )
+  ;; => (:|other-key| nil))
+
+(parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\"")
+;; => "ジョナサン"
+
+(parse "\"\\uD840\\uDC0B\"")
+;; => "𠀋"
+
+(parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\""
+       :unescape-unicode-escape-sequence nil)
+;; => "\u30b8\u30e7\u30ca\u30b5\u30f3"

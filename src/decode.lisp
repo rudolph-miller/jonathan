@@ -142,21 +142,77 @@
                                        result))))
                  (read-string (&optional skip-p)
                    (let ((start (pos))
-                         (escaped-count 0))
-                     (declare (type fixnum start escaped-count))
+                         (escaped-count 0)
+                         (unicode-count 0)
+                         (surrogate-count 0)
+                         (unicode-chars nil))
+                     (declare (type fixnum start escaped-count unicode-count))
                      (with-allowed-last-character (:char #\")
-                       (skip-while (lambda (c)
-                                     (or (and (char= c #\\) (incf escaped-count) (advance*))
-                                         (char/= c #\")))))
+                       (skip-while
+                        (lambda (c)
+                          (or (and
+                               (char= c #\\)
+                               (incf escaped-count)
+                               (prog1
+                                   (advance*)
+                                 (when (and
+                                        unescape-unicode-escape-sequence
+                                        (char= (current) #\u))
+                                   (let ((pair (read-unicode-escape-sequence)))
+                                     (setq unicode-chars
+                                           (append unicode-chars (list pair)))
+                                     (incf unicode-count)
+                                     (when (cdr pair)
+                                       (incf escaped-count)
+                                       (incf unicode-count)
+                                       (incf surrogate-count))))))
+                              (char/= c #\")))))
                      (prog1
                          (unless skip-p
                            (if (= escaped-count 0)
                                (subseq string start (pos))
-                               (parse-string-with-escaping start escaped-count)))
+                               (parse-string-with-escaping start
+                                                           escaped-count
+                                                           unicode-count
+                                                           surrogate-count
+                                                           unicode-chars)))
                        (advance*))))
-                 (parse-string-with-escaping (start escaped-count)
+                 (read-unicode-escape-sequence ()
+                   (advance*)
+                   (let ((char-code (parse-integer (subseq string (pos) (+ (pos) 4))
+                                                   :radix 16)))
+                     (if (and (>= char-code #xd800)
+                              (<= char-code #xdbff))
+                         (progn
+                           (advance* 4)
+                           (unless (and (char= (current) #\\)
+                                        (char= (and (advance*) (current)) #\u))
+                             (error "Lead Surrogate without Tail Surrogate"))
+                           (advance*)
+                           (let ((tail-code
+                                   (parse-integer (subseq string (pos) (+ (pos) 4))
+                                                  :radix 16)))
+                             (unless (and (>= tail-code #xdc00)
+                                          (<= tail-code #xdfff))
+                               (error "Lead Surrogate without Tail Surrogate"))
+                             (cons (code-char
+                                    (+ #x010000
+                                       (ash (- char-code #xd800) 10)
+                                       (- tail-code #xdc00)))
+                                   t)))
+                         (cons (code-char char-code)
+                               nil))))
+                 (parse-string-with-escaping (start
+                                              escaped-count
+                                              unicode-count
+                                              surrogate-count
+                                              unicode-chars)
                    (declare (type fixnum start escaped-count))
-                   (loop with result = (make-string (- (pos) start escaped-count))
+                   (loop with result = (make-string (- (pos)
+                                                       start
+                                                       escaped-count
+                                                       (* unicode-count 4)
+                                                       surrogate-count))
                          with result-index = 0
                          with escaped-p
                          for index from start below (pos)
@@ -170,7 +226,13 @@
                                       (#\n #\Linefeed)
                                       (#\r #\Return)
                                       (#\t #\Tab)
-                                      (#\u #\u)
+                                      (#\u (if unescape-unicode-escape-sequence
+                                               (let ((pair (pop unicode-chars)))
+                                                 (if (cdr pair)
+                                                     (incf index 11)
+                                                     (incf index 4))
+                                                 (car pair))
+                                               #\u))
                                       (t char)))
                               (incf result-index)
                               (when (zerop (decf escaped-count))
@@ -220,7 +282,12 @@
                                                         (float (expt 10 exp-num))
                                                         (expt 10 exp-num)))))))))
                            (return-from read-number (the fixnum num)))))))
-          (declare (inline read-object read-string parse-string-with-escaping read-array read-number))
+          (declare (inline read-object
+                           read-string
+                           read-unicode-escape-sequence
+                           parse-string-with-escaping
+                           read-array
+                           read-number))
           (skip-spaces)
           (return-from parse (dispatch)))))))
 

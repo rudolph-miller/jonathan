@@ -12,7 +12,7 @@
 
 (diag "jonathan-test.decode")
 
-rplan 30)
+(plan 30)
 
 (defvar *upper-exponent* (gensym "upper"))
 (defvar *lower-exponent* (gensym "lower"))
@@ -271,14 +271,19 @@ rplan 30)
         "specified.")))
 
 (subtest ":unescape-unicode-escape-sequence"
-  (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\"")
-             "ジョナサン"
-             "T.")
+  (subtest "T"
+    (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\"")
+        "ジョナサン"
+        "without surrogatepair.")
+    (is (parse "\"\\uD840\\uDC0B\"")
+        "𠀋"
+        "with surrogatepair."))
 
-  (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\""
-             :unescape-unicode-escape-sequence nil)
-             "\u30b8\u30e7\u30ca\u30b5\u30f3"
-             "NIL."))
+  (subtest "NIL"
+    (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\""
+               :unescape-unicode-escape-sequence nil)
+        "\u30b8\u30e7\u30ca\u30b5\u30f3"
+        "pass.")))
 
 (subtest "foldable-keywords-to-read-p"
   (ok (foldable-keywords-to-read-p ''("key"))
