@@ -12,7 +12,7 @@
 
 (diag "jonathan-test.decode")
 
-(plan 30)
+(plan 31)
 
 (defvar *upper-exponent* (gensym "upper"))
 (defvar *lower-exponent* (gensym "lower"))
@@ -284,6 +284,15 @@
                :unescape-unicode-escape-sequence nil)
         "\u30b8\u30e7\u30ca\u30b5\u30f3"
         "pass.")))
+
+(subtest "<jonathan-without-tail-surrogate-error>"
+  (is-error (parse "\"\\uD840\"")
+            '<jonathan-without-tail-surrogate-error>
+            "with no tail surrogate.")
+
+  (is-error (parse "\"\\uD840\\uD840\"")
+            '<jonathan-without-tail-surrogate-error>
+            "with not valid tail surrogate.")) 
 
 (subtest "foldable-keywords-to-read-p"
   (ok (foldable-keywords-to-read-p ''("key"))

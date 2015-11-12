@@ -187,14 +187,14 @@
                            (advance* 4)
                            (unless (and (char= (current) #\\)
                                         (char= (and (advance*) (current)) #\u))
-                             (error "Lead Surrogate without Tail Surrogate"))
+                             (error '<jonathan-without-tail-surrogate-error>))
                            (advance*)
                            (let ((tail-code
                                    (parse-integer (subseq string (pos) (+ (pos) 4))
                                                   :radix 16)))
                              (unless (and (>= tail-code #xdc00)
                                           (<= tail-code #xdfff))
-                               (error "Lead Surrogate without Tail Surrogate"))
+                               (error '<jonathan-without-tail-surrogate-error>))
                              (cons (code-char
                                     (+ #x010000
                                        (ash (- char-code #xd800) 10)

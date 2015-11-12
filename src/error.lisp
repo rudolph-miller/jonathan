@@ -4,7 +4,8 @@
   (:export :<jonathan-error>
            :<jonathan-unexpected-eof-error>
            :<jonathan-incomplete-json-error>
-           :<jonathan-not-supported-error>))
+           :<jonathan-not-supported-error>
+           :<jonathan-without-tail-surrogate-error>))
 (in-package :jonathan.error)
 
 (define-condition <jonathan-error> (simple-error)
@@ -31,6 +32,12 @@
   ((object :initarg :object :documentation "Not supported object slot."))
   (:report
    (lambda (condition stream)
-     (declare (ignore condition))
      (with-slots (object) condition
        (format stream "~a is not supported." object)))))
+
+(define-condition <jonathan-without-tail-surrogate-error> (<jonathan-error>)
+  ()
+  (:report
+   (lambda (condition stream)
+     (declare (ignore condition))
+     (format stream "Lead Surrogate without Tail Surrogate"))))

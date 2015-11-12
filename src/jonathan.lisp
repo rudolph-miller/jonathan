@@ -5,7 +5,9 @@
   (:import-from :jonathan.error
                 :<jonathan-error>
                 :<jonathan-unexpected-eof-error>
-                :<jonathan-incomplete-json-error>)
+                :<jonathan-incomplete-json-error>
+                :<jonathan-not-supported-error>
+                :<jonathan-without-tail-surrogate-error>)
   (:import-from :jonathan.encode
                 :*octets*
                 :*from*
@@ -42,6 +44,8 @@
            :<jonathan-error>
            :<jonathan-unexpected-eof-error>
            :<jonathan-incomplete-json-error>
+           :<jonathan-not-supported-error>
+           :<jonathan-without-tail-surrogate-error>
            :parse
            :write-key
            :write-value
