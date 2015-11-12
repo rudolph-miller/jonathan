@@ -12,7 +12,7 @@
 
 (diag "jonathan-test.decode")
 
-(plan 29)
+rplan 30)
 
 (defvar *upper-exponent* (gensym "upper"))
 (defvar *lower-exponent* (gensym "lower"))
@@ -177,7 +177,7 @@
             "with object.")
 
 (parse-test :empty
-            "with empty object.")
+            "with empty objectu.")
 
 (parse-test '(:Rudolph :empty)
             "with object which have empty object in its value part.")
@@ -269,6 +269,16 @@
                :exclude-normalize-keys '("other-key"))
         '(:|other-key| (:|key2| "value2"))
         "specified.")))
+
+(subtest ":unescape-unicode-escape-sequence"
+  (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\"")
+             "ジョナサン"
+             "T.")
+
+  (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\""
+             :unescape-unicode-escape-sequence nil)
+             "\u30b8\u30e7\u30ca\u30b5\u30f3"
+             "NIL."))
 
 (subtest "foldable-keywords-to-read-p"
   (ok (foldable-keywords-to-read-p ''("key"))

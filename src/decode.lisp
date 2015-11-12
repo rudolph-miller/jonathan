@@ -45,7 +45,13 @@
 
 @doc
 "Convert JSON String to LISP object."
-(defun parse (string &key (as :plist) junk-allowed keywords-to-read keyword-normalizer normalize-all exclude-normalize-keys)
+(defun parse (string &key (as :plist)
+                       junk-allowed
+                       keywords-to-read
+                       keyword-normalizer
+                       normalize-all
+                       exclude-normalize-keys
+                       (unescape-unicode-escape-sequence t))
   (declare (type simple-string string)
            (type (or null function) keyword-normalizer)
            (optimize (speed 3) (safety 0) (debug 0) (space 0)))
@@ -164,6 +170,7 @@
                                       (#\n #\Linefeed)
                                       (#\r #\Return)
                                       (#\t #\Tab)
+                                      (#\u #\u)
                                       (t char)))
                               (incf result-index)
                               (when (zerop (decf escaped-count))
@@ -218,8 +225,14 @@
           (return-from parse (dispatch)))))))
 
 
-(define-compiler-macro parse (&whole form string &key (as :plist) junk-allowed keywords-to-read
-                                     keyword-normalizer normalize-all exclude-normalize-keys)
+(define-compiler-macro parse (&whole form string
+                                     &key (as :plist)
+                                     junk-allowed
+                                     keywords-to-read
+                                     keyword-normalizer
+                                     normalize-all
+                                     exclude-normalize-keys
+                                     (unescape-unicode-escape-sequence t))
   (handler-case
       (if (and (not keyword-normalizer)
                (foldable-keywords-to-read-p keywords-to-read))
@@ -229,7 +242,8 @@
                             :keywords-to-read ,keywords-to-read
                             :keyword-normalizer (make-normalizer ,keywords)
                             :normalize-all ,normalize-all
-                            :exclude-normalize-keys ,exclude-normalize-keys))
+                            :exclude-normalize-keys ,exclude-normalize-keys
+                            :unescape-unicode-escape-sequence ,unescape-unicode-escape-sequence))
           form)
     (error () form)))
 
