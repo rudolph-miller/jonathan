@@ -274,10 +274,11 @@
   (subtest "T"
     (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\"")
         "ジョナサン"
-        "without surrogatepair.")
+        "without surrogate pair.")
+    #+(or :sbcl :clisp)
     (is (parse "\"\\uD840\\uDC0B\"")
         "𠀋"
-        "with surrogatepair."))
+        "with surrogate pair."))
 
   (subtest "NIL"
     (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\""
