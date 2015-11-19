@@ -186,7 +186,8 @@
                          (progn
                            (advance* 4)
                            (unless (and (char= (current) #\\)
-                                        (char= (and (advance*) (current)) #\u))
+                                        (advance*)
+                                        (char= (current) #\u))
                              (error '<jonathan-without-tail-surrogate-error>))
                            (advance*)
                            (let ((tail-code
