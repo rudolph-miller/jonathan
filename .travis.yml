@@ -11,7 +11,7 @@ env:
     - LISP=sbcl-bin COVERALLS=true
     - LISP=sbcl/1.1.14
     - LISP=ccl-bin
-    # - LISP=abcl
+    - LISP=abcl
     - LISP=clisp
     # - LISP=ecl
     # - LISP=allegro
