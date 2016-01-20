@@ -187,15 +187,17 @@
 (defun to-json (obj &key (octets *octets*) (from *from*) stream)
   (declare (optimize (speed 3) (safety 0) (debug 0)))
   (let ((*stream* (if octets
-                      (make-output-buffer :output :vector)
+                      (make-output-buffer :output (or stream :vector))
                       (or stream (make-string-output-stream))))
         (*octets* octets)
         (*from* from))
     (%to-json obj)
     (if octets
-        (finish-output-buffer *stream*)
+        (if stream
+            (fast-io::flush *stream*)   ; flush to the stream
+            (finish-output-buffer *stream*))
         (unless stream
-          (get-output-stream-string *stream*)))))
+            (get-output-stream-string *stream*)))))
 
 @doc
 "Write obj as JSON string."
