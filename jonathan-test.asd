@@ -8,6 +8,7 @@
   :license "MIT"
   :description "Tests of Jonathan."
   :depends-on (:jonathan
+               :fast-io
                :prove)
   :components ((:module "t"
                 :components
