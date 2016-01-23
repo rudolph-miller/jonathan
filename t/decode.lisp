@@ -117,7 +117,18 @@
                      (exponent-value ,target)
                      (convert-to-hash-result ,target)))
              ":as :hash-table."
-             :test #'equalp)))))
+             :test #'equalp))
+       (is (parse (to-json ,target :octets t))
+           (if (exponent-p ,target)
+               (exponent-value ,target)
+               (case ,target
+                 (:false *false-value*)
+                 (:null *null-value*)
+                 (t (if (null ,target)
+                        *empty-array-value*
+                        ,target))))
+           "from octets."
+           :test #'equalp))))
 
 (parse-test t
             "with T.")
