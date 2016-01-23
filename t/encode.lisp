@@ -7,7 +7,7 @@
 
 (diag "jonathan-test.encode")
 
-(plan 25)
+(plan 31)
 
 (subtest "with-object"
   (is-print
@@ -94,6 +94,28 @@
     "\"Rudo\\\\lph\""
     "with #\\.")
 
+(is (to-json "Rüdólph")
+    "\"Rüdólph\""
+    "with non-ASCII character")
+
+(is (to-json (format nil "Rud~alph" (code-char 0)))
+    "\"Rud\\u0000lph\""
+    "With Nul character")
+
+(is (to-json (format nil "Rud~alph" (code-char #x91)))
+    "\"Rud\\u0091lph\""
+    "With control character from C1")
+
+(is (to-json "Rüdólph" :octets t)
+    #(34 82 195 188 100 195 179 108 112 104 34)
+    "with non-ASCII characters to bytes"
+    :test 'equalp)
+
+(is (to-json (string (code-char #x1D160)) :octets t)
+    #(34 240 157 133 160 34)
+    "with non-BMP character to bytes"
+    :test 'equalp)
+
 (is (to-json '("Rudolph" "Miller"))
     "[\"Rudolph\",\"Miller\"]"
     "with list.")
@@ -154,5 +176,23 @@
 (is (to-json (make-instance 'user :id 1 :name "Rudolph"))
     "{\"id\":1,\"name\":\"Rudolph\"}"
     "customizable.")
+
+(subtest "%write-utf8-char"
+  (flet ((test-char (char message)
+           (is (let* ((jonathan.encode:*stream* (fast-io:make-output-buffer))
+                      (*octets* t))
+                 (%write-utf8-char char)
+                 (fast-io:finish-output-buffer jonathan.encode:*stream*))
+               (babel:string-to-octets (string char))
+               message
+               :test #'equalp)))
+    (test-char (code-char #x0) "Single byte")
+    (test-char (code-char #x80) "Two bytes")
+    (test-char (code-char #x800) "Three bytes")
+    (test-char (code-char #x10000) "Four bytes")
+    (test-char (code-char #x7f) "Largest single byte")
+    (test-char (code-char #x7ff) "Largest two byte")
+    (test-char (code-char #xffff) "Largest three byte")
+    (test-char (code-char #x10ffff) "Highest unicode character")))
 
 (finalize)

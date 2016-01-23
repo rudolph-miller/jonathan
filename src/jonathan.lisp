@@ -21,6 +21,7 @@
                 :to-json
                 :%to-json
                 :%write-char
+                :%write-utf8-char
                 :%write-string)
   (:import-from :jonathan.decode
                 :*false-value*
@@ -36,6 +37,7 @@
            :to-json
            :%to-json
            :%write-char
+           :%write-utf8-char
            :%write-string
            :*false-value*
            :*null-value*

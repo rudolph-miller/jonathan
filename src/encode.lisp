@@ -22,6 +22,7 @@
            :to-json
            :%to-json
            :%write-char
+           :%write-utf8-char
            :%write-string))
 (in-package :jonathan.encode)
 
@@ -62,31 +63,64 @@
       (write-char char *stream*))
   nil)
 
+(declaim (inline %fast-write-char))
+@doc
+"Write a character to *stream* encoded in UTF-8"
+(defun %write-utf8-char (char)
+  (declare (type character char)
+           (optimize (speed 3) (safety 0) (debug 0)))
+  (if *octets*
+      (let ((code (char-code char)))
+        (declare (fixnum code))
+        (macrolet ((extended-byte (code)
+                     `(logior #x80 (logand #x3f ,code))))
+          (cond
+            ;; one octet
+            ((< code #x80)
+             (fast-write-byte code *stream*))
+            ;; two octets
+            ((< code #x800)
+             (fast-write-byte (logior #xc0 (ash code -6)) *stream*)
+             (fast-write-byte (extended-byte code) *stream*))
+            ;; three octets
+            ((< code #x10000)
+             (fast-write-byte (logior #xe0 (ash code -12)) *stream*)
+             (fast-write-byte (extended-byte (ash code -6)) *stream*)
+             (fast-write-byte (extended-byte code) *stream*))
+            ;; four octets
+            (t
+             (fast-write-byte (logior #xf0 (ash code -18)) *stream*)
+             (fast-write-byte (extended-byte (ash code -12)) *stream*)
+             (fast-write-byte (extended-byte (ash code -6)) *stream*)
+             (fast-write-byte (extended-byte code) *stream*)))))
+      (write-char char *stream*)))
+
 (declaim (inline string-to-json))
 (defun string-to-json (string)
   (declare (type simple-string string)
            (optimize (speed 3) (safety 0) (debug 0)))
-  (macrolet ((escape (char pairs)
-               (declare (type list pairs))
-               (let* ((sorted (sort (copy-list pairs) #'char<= :key #'car))
-                      (min-char (caar sorted))
-                      (max-char (caar (last sorted))))
-                 `(if (and (char<= ,char ,max-char)
-                           (char>= ,char ,min-char))
-                      (cond
-                        ,@(mapcar #'(lambda (pair)
-                                      `((char= ,char ,(car pair))
-                                        (%write-string ,(cdr pair))))
-                                  pairs)
-                        (t (%write-char ,char)))
-                      (%write-char ,char)))))
+  (macrolet ((unicode-escape (char)
+               `(format nil "\\u~4,'0x" (char-code ,char)))
+             (escape (char)
+               (declare (type character char))
+               (let* ((c0-top (code-char #x1f))
+                      (c1-bottom (code-char #x7f))
+                      (c1-top (code-char #x9f)))
+                 `(cond
+                    ((char<= ,char ,c0-top)
+                     (%write-string (case ,char
+                                      (#\Newline "\\n")
+                                      (#\Return "\\r")
+                                      (#\Tab "\\t")
+                                      (otherwise (unicode-escape char)))))
+                    ((char<= ,c1-bottom ,char ,c1-top)
+                     (%write-string (unicode-escape ,char)))
+                    ((char= ,char #\") (%write-string "\\\""))
+                    ((char= ,char #\\) (%write-string "\\\\"))
+                    (t (%write-utf8-char ,char))))))
     (%write-char #\")
     (loop for char of-type character across string
-          do (escape char ((#\Newline . "\\n")
-                           (#\Return . "\\r")
-                           (#\Tab . "\\t")
-                           (#\" . "\\\"")
-                           (#\\ . "\\\\"))))
+       do (escape char))
     (%write-char #\")))
 
 (defmacro with-macro-p (list)
