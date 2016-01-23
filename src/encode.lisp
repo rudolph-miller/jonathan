@@ -63,6 +63,12 @@
       (write-char char *stream*))
   nil)
 
+#+:abcl
+(progn
+  (declaim (type fixnum *surrogate-remainder*))
+  (defparameter *surrogate-remainder* 0))
+
+
 (declaim (inline %fast-write-char))
 @doc
 "Write a character to *stream* encoded in UTF-8"
@@ -75,6 +81,24 @@
         (macrolet ((extended-byte (code)
                      `(logior #x80 (logand #x3f ,code))))
           (cond
+            ;; Handle surrogate pairs for abcl
+            ;; this is not thread safe.
+            #+:abcl
+            ((<= #xd800 code #xdfff)
+             (let ((bits (logand #x3ff code)))
+               (if (> code #xdc00)
+                   ;; low surrogate
+                   (progn
+                     (fast-write-byte (logior #x80
+                                              (ash *surrogate-remainder* 4)
+                                              (ash bits -6)) *stream*)
+                     (fast-write-byte (extended-byte bits) *stream*))
+                   ;; high surrogate
+                   (progn
+                     (incf bits #x40)   ; adding #x10000 to combination of surrogates
+                     (fast-write-byte (logior #xf0 (ash bits -8)) *stream*)
+                     (fast-write-byte (extended-byte (ash bits -2)) *stream*)
+                     (setf *surrogate-remainder* (logand 3 bits))))))
             ;; one octet
             ((< code #x80)
              (fast-write-byte code *stream*))

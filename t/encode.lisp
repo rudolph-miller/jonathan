@@ -111,10 +111,17 @@
     "with non-ASCII characters to bytes"
     :test 'equalp)
 
-(is (to-json (string (code-char #x1D160)) :octets t)
-    #(34 240 157 133 160 34)
+#-:abcl                                 ; abcl reader has problems with utf-8 non-BMP
+(is (to-json "😃" :octets t)
+    #(34 240 159 152 131 34)
     "with non-BMP character to bytes"
-    :test 'equalp)
+    :test #'equalp)
+
+#+:abcl
+(is (to-json (format nil "~a~a" (code-char #xd83d) (code-char #xde03)) :octets t)
+    #(34 240 159 152 131 34)
+    "with non-BMP character to bytes"
+    :test #'equalp)
 
 (is (to-json '("Rudolph" "Miller"))
     "[\"Rudolph\",\"Miller\"]"
