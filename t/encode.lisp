@@ -185,14 +185,14 @@
     "customizable.")
 
 (subtest "%write-utf8-char"
-  (flet ((test-char (char message)
-           (is (let* ((jonathan.encode:*stream* (fast-io:make-output-buffer))
-                      (*octets* t))
-                 (%write-utf8-char char)
-                 (fast-io:finish-output-buffer jonathan.encode:*stream*))
-               (babel:string-to-octets (string char))
-               message
-               :test #'equalp)))
+  (macrolet ((test-char (char message)
+               `(is (let* ((jonathan.encode:*stream* (fast-io:make-output-buffer))
+                           (*octets* t))
+                      (%write-utf8-char ,char)
+                      (fast-io:finish-output-buffer jonathan.encode:*stream*))
+                    (babel:string-to-octets (string ,char))
+                    ,message
+                    :test #'equalp)))
     (test-char (code-char #x0) "Single byte")
     (test-char (code-char #x80) "Two bytes")
     (test-char (code-char #x800) "Three bytes")
