@@ -89,6 +89,13 @@
                            (#\\ . "\\\\"))))
     (%write-char #\")))
 
+#+allegro
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro with-macro-p (list)
+  `(and (consp ,list)
+        (member (car ,list) '(with-object with-array)))))
+
+#-allegro
 (defmacro with-macro-p (list)
   `(and (consp ,list)
         (member (car ,list) '(with-object with-array))))
