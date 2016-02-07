@@ -7,7 +7,7 @@
 
 (diag "jonathan-test.encode")
 
-(plan 25)
+(plan 27)
 
 (subtest "with-object"
   (is-print
@@ -140,6 +140,18 @@
 (is (to-json '(:obj (:|Rudolph| . "Miller")) :from :jsown)
     "{\"Rudolph\":\"Miller\"}"
     ":from :jsown.")
+
+(is (with-output-to-string (s)
+      (to-json '(:|Rudolph| "Miller") :output s))
+    "{\"Rudolph\":\"Miller\"}"
+    ":output with character stream")
+
+(is (let ((s (make-instance 'fast-io:fast-output-stream)))
+      (to-json '(:|Rudolph| "Miller") :output s :octets t)
+      (fast-io:finish-output-stream s))
+    #(123 34 82 117 100 111 108 112 104 34 58 34 77 105 108 108 101 114 34 125)
+    :test #'equalp
+    ":output with octet stream")
 
 (defclass user ()
   ((id :type integer :initarg :id)

@@ -191,17 +191,21 @@
 
 @doc
 "Convert LISP object to JSON String."
-(defun to-json (obj &key (octets *octets*) (from *from*))
+(defun to-json (obj &key (octets *octets*) (from *from*) output)
   (declare (optimize (speed 3) (safety 0) (debug 0)))
   (let ((*stream* (if octets
-                      (make-output-buffer :output :vector)
-                      (make-string-output-stream)))
+                      (make-output-buffer :output (or output :vector))
+                      (or output (make-string-output-stream))))
         (*octets* octets)
         (*from* from))
     (%to-json obj)
+    ;; temporary until 30c5d87781b on fast-io is in quicklisp
+    (when (and octets output)
+      (fast-io::flush *stream*))
     (if octets
         (finish-output-buffer *stream*)
-        (get-output-stream-string *stream*))))
+        (unless output
+            (get-output-stream-string *stream*)))))
 
 @doc
 "Write obj as JSON string."

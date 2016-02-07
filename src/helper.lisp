@@ -185,10 +185,12 @@
             `(list `(to-json (progn ,@',body) :from ,',from :octets ,',octets))
             `(lambda (,@args) (to-json (progn ,@body) :from ,from :octets ,octets)))))))
 
-(define-compiler-macro to-json (&whole form args &key from octets)
-  (handler-case
-      `(progn
-         ,@(eval
-            `(compile-encoder (:from ,from :octets ,octets :return-form t) nil
-               ,args)))
-    (error () form)))
+(define-compiler-macro to-json (&whole form args &key from octets output)
+  (if output
+      form
+      (handler-case
+          `(progn
+             ,@(eval
+                `(compile-encoder (:from ,from :octets ,octets :return-form t) nil
+                   ,args)))
+        (error () form))))
