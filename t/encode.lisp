@@ -72,6 +72,12 @@
 
 (is (to-json "Rudolph")
     "\"Rudolph\""
+    "with simple-string.")
+
+(is (to-json (let* ((simple-string "Rudolph")
+                    (not-so-simple-string (make-array 7 :element-type 'character :displaced-to simple-string :displaced-index-offset 0)))
+               not-so-simple-string))
+    "\"Rudolph\""
     "with string.")
 
 (is (to-json (format nil "Rudo~alph" #\Newline))
