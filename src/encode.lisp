@@ -207,8 +207,11 @@
 "Write obj as JSON string."
 (defgeneric %to-json (obj))
 
-(defmethod %to-json ((string string))
+(defmethod %to-json ((string simple-string))
   (string-to-json string))
+
+(defmethod %to-json ((string string))
+  (string-to-json (princ-to-string string)))
 
 (defmethod %to-json ((number number))
   (%write-string (princ-to-string number)))
