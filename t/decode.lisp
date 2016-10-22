@@ -12,7 +12,7 @@
 
 (diag "jonathan-test.decode")
 
-(plan 31)
+(plan 32)
 
 (defvar *upper-exponent* (gensym "upper"))
 (defvar *lower-exponent* (gensym "lower"))
@@ -304,5 +304,16 @@
 
   (ok (not (foldable-keywords-to-read-p 'x))
       "with variable."))
+
+(subtest "double-float"
+  (is (parse "35.65910807942215")
+      35.65910807942215d0
+      "Can parse double-float")
+  (is (parse "139.70372892916203")
+      139.70372892916203d0
+      "Can parse double-float")
+  (is (parse "35.659108")
+      35.659108
+      "Can parse single-float"))
 
 (finalize)

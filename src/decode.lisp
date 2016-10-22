@@ -269,8 +269,15 @@
                                    (block nil
                                      (let ((rest-start (the fixnum (pos))))
                                        (bind (rest-num-str (skip-while integer-char-p))
-                                         (let ((rest-num (the fixnum (parse-integer rest-num-str))))
-                                           (return (+ num  (float (/ rest-num (the fixnum (expt 10 (- (pos) rest-start)))))))))))))
+                                         (let* ((rest-num (the fixnum (parse-integer rest-num-str)))
+                                                (digits-len (the fixnum (- (pos) rest-start)))
+                                                (bits-len (the fixnum (+ digits-len (length num-str)))))
+                                           (return
+                                             (+ num
+                                                (coerce (/ rest-num (expt 10 digits-len))
+                                                        (if (< 8 bits-len)
+                                                            'double-float
+                                                            'single-float))))))))))
                            (when (with-allowed-last-character ()
                                    (skip? #\e #\E))
                              (setq num
