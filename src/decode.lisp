@@ -269,7 +269,7 @@
                                    (block nil
                                      (let ((rest-start (the fixnum (pos))))
                                        (bind (rest-num-str (skip-while integer-char-p))
-                                         (let* ((rest-num (the fixnum (parse-integer rest-num-str)))
+                                         (let* ((rest-num (parse-integer rest-num-str))
                                                 (digits-len (the fixnum (- (pos) rest-start)))
                                                 (bits-len (the fixnum (+ digits-len (length num-str)))))
                                            (return
