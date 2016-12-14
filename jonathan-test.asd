@@ -8,14 +8,16 @@
   :license "MIT"
   :description "Tests of Jonathan."
   :depends-on (:jonathan
-               :prove)
+               :prove
+               :legion)
   :components ((:module "t"
                 :components
                 ((:test-file "jonathan")
                  (:test-file "util")
                  (:test-file "encode")
                  (:test-file "decode")
-                 (:test-file "helper"))))
+                 (:test-file "helper")
+                 (:test-file "thread"))))
 
   :defsystem-depends-on (:prove-asdf)
   :perform (test-op :after (op c)

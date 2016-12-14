@@ -158,10 +158,9 @@
                                          (and (stringp item)
                                               (length= item 0)))
                                      result))
-             (let ((form `(let ((*stream* (load-time-value
-                                           ,(if ,octets
+             (let ((form `(let ((*stream* ,(if ,octets
                                                 `(make-output-buffer :output :vector)
-                                                `(make-string-output-stream :element-type 'character))))
+                                                `(make-string-output-stream :element-type 'character)))
                                 (*from* ,,from)
                                 (*octets* ,,octets))
                             ,@(loop for item in result
