@@ -335,7 +335,7 @@
                (foldable-keywords-to-read-p keywords-to-read))
           (let ((keywords (eval keywords-to-read)))
             `(parse ,string :as ,as
-                            :array-as ,array-as
+                            :array-as ',array-as
                             :junk-allowed ,junk-allowed
                             :keywords-to-read ,keywords-to-read
                             :keyword-normalizer (make-normalizer ,keywords)
