@@ -46,6 +46,7 @@
 @doc
 "Convert JSON String to LISP object."
 (defun parse (string &key (as :plist)
+                       (array-as 'list)
                        junk-allowed
                        keywords-to-read
                        keyword-normalizer
@@ -55,6 +56,7 @@
   (declare (type simple-string string)
            (type (or null function) keyword-normalizer)
            (optimize (speed 3) (safety 0) (debug 0) (space 0)))
+  (check-type as (member :alist :plist :jsown :hash-table))
   (let* ((as-alist (eq as :alist))
          (as-jsown (eq as :jsown))
          (as-hash-table (eq as :hash-table))
@@ -198,8 +200,8 @@
                                (error '<jonathan-without-tail-surrogate-error>))
                              (cons (code-char
                                     (+ #x010000
-                                       (ash (- char-code #xd800) 10)
-                                       (- tail-code #xdc00)))
+                                        (ash (- char-code #xd800) 10)
+                                        (- tail-code #xdc00)))
                                    t)))
                          (cons (code-char char-code)
                                nil))))
@@ -210,10 +212,10 @@
                                               unicode-chars)
                    (declare (type fixnum start escaped-count))
                    (loop with result = (make-string (- (pos)
-                                                       start
-                                                       escaped-count
-                                                       (* unicode-count 4)
-                                                       surrogate-count))
+                                                        start
+                                                        escaped-count
+                                                        (* unicode-count 4)
+                                                        surrogate-count))
                          with result-index = 0
                          with escaped-p
                          for index from start below (pos)
@@ -247,12 +249,31 @@
                            do (setf (char result result-index) char)
                               (incf result-index)
                          finally (return result)))
-                 (read-array (&optional skip-p)
-                   (skip-spaces)
+                 (read-array-as-array (skip-p)
+                   (loop with res = (make-array 1 :fill-pointer 0 :adjustable t)
+                         until (skip?-or-eof #\])
+                         do (vector-push-extend (dispatch skip-p) res)
+                         do (with-skip-spaces (skip? #\,))
+                         finally (return (if (> (length res) 0)
+                                             res
+                                             *empty-array-value*))))
+                 (read-array-as-list (skip-p)
                    (or (loop until (skip?-or-eof #\])
                              collect (dispatch skip-p)
                              do (with-skip-spaces (skip? #\,)))
                        *empty-array-value*))
+                 (read-array (&optional skip-p)
+                   (skip-spaces)
+                   (cond
+                     ((subtypep array-as 'list)
+                      (read-array-as-list skip-p))
+                     ((subtypep array-as 'vector)
+                      (read-array-as-array skip-p))
+                     ;; Deal with user extensible sequences
+                     (t (let* ((res (read-array-as-array skip-p)))
+                          (if (eq *empty-array-value* res)
+                              *empty-array-value*
+                              (coerce res array-as))))))
                  (read-number (&optional skip-p)
                    (if skip-p
                        (tagbody
@@ -274,10 +295,10 @@
                                                 (bits-len (the fixnum (+ digits-len (length num-str)))))
                                            (return
                                              (+ num
-                                                (coerce (/ rest-num (expt 10 digits-len))
-                                                        (if (< 8 bits-len)
-                                                            'double-float
-                                                            'single-float))))))))))
+                                                 (coerce (/ rest-num (expt 10 digits-len))
+                                                         (if (< 8 bits-len)
+                                                             'double-float
+                                                             'single-float))))))))))
                            (when (with-allowed-last-character ()
                                    (skip? #\e #\E))
                              (setq num
@@ -302,6 +323,7 @@
 
 (define-compiler-macro parse (&whole form string
                                      &key (as :plist)
+                                     (array-as 'list)
                                      junk-allowed
                                      keywords-to-read
                                      keyword-normalizer
@@ -313,6 +335,7 @@
                (foldable-keywords-to-read-p keywords-to-read))
           (let ((keywords (eval keywords-to-read)))
             `(parse ,string :as ,as
+                            :array-as ,array-as
                             :junk-allowed ,junk-allowed
                             :keywords-to-read ,keywords-to-read
                             :keyword-normalizer (make-normalizer ,keywords)
