@@ -262,7 +262,8 @@
                         :eof
                           (return-from read-number))
                        (bind (num-str (skip-while integer-char-p))
-                         (let ((num (the fixnum (parse-integer num-str))))
+                         (let ((num (the fixnum (parse-integer num-str)))
+                               (neg (the boolean (char= #\- (schar num-str 0)))))
                            (when (with-allowed-last-character ()
                                    (skip? #\.))
                              (setq num
@@ -271,13 +272,15 @@
                                        (bind (rest-num-str (skip-while integer-char-p))
                                          (let* ((rest-num (parse-integer rest-num-str))
                                                 (digits-len (the fixnum (- (pos) rest-start)))
-                                                (bits-len (the fixnum (+ digits-len (length num-str)))))
+                                                (bits-len (the fixnum (+ digits-len (length num-str) (if neg -1 0)))))
                                            (return
-                                             (+ num
-                                                (coerce (/ rest-num (expt 10 digits-len))
-                                                        (if (< 8 bits-len)
-                                                            'double-float
-                                                            'single-float))))))))))
+                                             (funcall
+                                              (if neg #'- #'+)
+                                              num
+                                              (coerce (/ rest-num (expt 10 digits-len))
+                                                      (if (< 8 bits-len)
+                                                          'double-float
+                                                          'single-float))))))))))
                            (when (with-allowed-last-character ()
                                    (skip? #\e #\E))
                              (setq num
