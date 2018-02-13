@@ -161,6 +161,15 @@
 (parse-test 0.1
             "with float.")
 
+(parse-test -0.0
+            "with negative float zero.")
+
+(parse-test -0.1
+            "with negative float.")
+
+(parse-test -9.9
+            "with negative float.")
+
 (parse-test *upper-exponent*
             "with E.")
 
@@ -314,6 +323,15 @@
       "Can parse double-float")
   (is (parse "35.659108")
       35.659108
-      "Can parse single-float"))
+      "Can parse single-float")
+  (is (parse "-35.65910807942215")
+      -35.65910807942215d0
+      "Can parse negative double-float")
+  (is (parse "-139.70372892916203")
+      -139.70372892916203d0
+      "Can parse negative double-float")
+  (is (parse "-35.659108")
+      -35.659107
+      "Can parse negative single-float"))
 
 (finalize)
