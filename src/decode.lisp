@@ -178,6 +178,9 @@
                                                            unicode-chars)))
                        (advance*))))
                  (read-unicode-escape-sequence ()
+                   "Returns a pair like (char . is-surrogate-p) where
+                    is-surrogate-p is `t' if char is a surrogate unicode symbol and
+                    `nil' otherwise."
                    (advance*)
                    (let ((char-code (parse-integer (subseq string (pos) (+ (pos) 4))
                                                    :radix 16)))
@@ -230,7 +233,7 @@
                                       (#\u (if unescape-unicode-escape-sequence
                                                (let ((pair (pop unicode-chars)))
                                                  (if (cdr pair)
-                                                     (incf index 11)
+                                                     (incf index 10)
                                                      (incf index 4))
                                                  (car pair))
                                                #\u))
