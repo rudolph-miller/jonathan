@@ -284,7 +284,7 @@
     (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\"")
         "ジョナサン"
         "without surrogate pair.")
-    #+(or :sbcl :clisp)
+    #+(or :sbcl :clisp :ccl)
     (is (parse "\"\\uD840\\uDC0B\"")
         "𠀋"
         "with surrogate pair."))
