@@ -284,10 +284,15 @@
     (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\"")
         "ジョナサン"
         "without surrogate pair.")
-    #+(or :sbcl :clisp)
+    #+(or :sbcl :clisp :ccl)
     (is (parse "\"\\uD840\\uDC0B\"")
         "𠀋"
-        "with surrogate pair."))
+        "with surrogate pair.")
+    (is (parse "\"\\uD83D\\uDE3E\\uD83D\\uDD2A\"")
+        (concatenate 'string
+                     (parse "\"\\uD83D\\uDE3E\"")
+                     (parse "\"\\uD83D\\uDD2A\""))
+        "surrogate pairs should be parsed equally when they follow together and separate from each other."))
 
   (subtest "NIL"
     (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\""
