@@ -1,0 +1,262 @@
+@begin(section)
+@title(Overview)
+@link[uri=https://travis-ci.org/Rudolph-Miller/jonathan](@image[src="https://travis-ci.org/Rudolph-Miller/jonathan.svg"]())
+
+@link[uri=https://circleci.com/gh/Rudolph-Miller/jonathan](@image[src="https://circleci.com/gh/Rudolph-Miller/jonathan.svg"]())
+
+@link[uri=https://coveralls.io/repos/Rudolph-Miller/jonathan](@image[src="https://coveralls.io/repos/Rudolph-Miller/jonathan/badge.svg"]())
+@link[uri=http://quickdocs.org/jonathan/](@image[src="http://quickdocs.org/badge/jonathan.svg"]())
+@begin(section)
+@title(Description)
+High performance JSON encoder and decoder. Currently support: SBCL, CCL.
+@end(section)
+@begin(section)
+@title(Images)
+@begin(section)
+@title(1. to-json)
+@image[src="1.to-json.png"]()
+@code[lang=lisp](@include[path=../images/1.to-json.lisp]())
+@end(section)
+@begin(section)
+@title(2. parse)
+@image[src="2.parse.png"]()
+@code[lang=lisp](@include[path=../images/2.parse.lisp]())
+@end(section)
+@begin(section)
+@title(3. parse-partially)
+@image[src="3.parse-partially.png"]()
+@code[lang=lisp](@include[path=../images/3.parse-partially.lisp]())
+@end(section)
+@end(section)
+@begin(section)
+@title(Examples)
+@begin(section)
+@title(1. to-json)
+@code[lang=lisp](@include[path=../examples/1.to-json.lisp]())
+@end(section)
+@begin(section)
+@title(2. compile-encoder)
+@code[lang=lisp](@include[path=../examples/2.compile-encoder.lisp]())
+@end(section)
+@begin(section)
+@title(3. parse)
+@code[lang=lisp](@include[path=../examples/3.parse.lisp]())
+@end(section)
+@begin(section)
+@title(4. helpers)
+@code[lang=lisp](@include[path=../examples/4.helpers.lisp]())
+@end(section)
+@end(section)
+@begin(section)
+@title(Author)
+@b(Rudolph-Miller)
+@end(section)
+@begin(section)
+@title(Licence)
+MIT
+@end(section)
+@end(section)
+
+Package: JONATHAN-ASD
+; compiling file "/home/ubuntu/jonathan/src/error.lisp" (written 14 APR 2018 09:19:06 AM):
+; compiling (IN-PACKAGE :CL-USER)
+; compiling (DEFPACKAGE JONATHAN.ERROR ...)
+Package: JONATHAN.ERROR
+; compiling (IN-PACKAGE :JONATHAN.ERROR)
+; compiling (DEFINE-CONDITION <JONATHAN-ERROR> ...)
+; compiling (DEFINE-CONDITION <JONATHAN-UNEXPECTED-EOF-ERROR> ...)
+; compiling (DEFINE-CONDITION <JONATHAN-INCOMPLETE-JSON-ERROR> ...)
+; compiling (DEFINE-CONDITION <JONATHAN-NOT-SUPPORTED-ERROR> ...)
+; compiling (DEFINE-CONDITION <JONATHAN-WITHOUT-TAIL-SURROGATE-ERROR> ...)
+
+; /home/ubuntu/.cache/common-lisp/sbcl-1.4.6-linux-x64/home/ubuntu/jonathan/src/error-tmp1Z95I17K.fasl written
+; compilation finished in 0:00:00.026
+; compiling file "/home/ubuntu/jonathan/src/util.lisp" (written 14 APR 2018 09:19:06 AM):
+; compiling (IN-PACKAGE :CL-USER)
+; compiling (DEFPACKAGE JONATHAN.UTIL ...)
+Package: JONATHAN.UTIL
+; compiling (IN-PACKAGE :JONATHAN.UTIL)
+; compiling (DEFPARAMETER +IMPL-COMMA-P+ ...)
+; compiling (DEFUN MY-PLIST-P ...)
+; compiling (DECLAIM (INLINE INTEGER-CHAR-P))
+; compiling (DEFUN INTEGER-CHAR-P ...)
+; compiling (DEFUN MAKE-KEYWORD ...)
+; compiling (DEFUN COMMA-P ...)
+; compiling (DEFUN COMMA-EXPR ...)
+; compiling (DEFVAR *QUASIQUOTE* ...)
+
+; /home/ubuntu/.cache/common-lisp/sbcl-1.4.6-linux-x64/home/ubuntu/jonathan/src/util-tmpCFVK1AC1.fasl written
+; compilation finished in 0:00:00.008
+; compiling file "/home/ubuntu/jonathan/src/encode.lisp" (written 14 APR 2018 09:19:06 AM):
+; compiling (IN-PACKAGE :CL-USER)
+; compiling (DEFPACKAGE JONATHAN.ENCODE ...)
+Package: JONATHAN.ENCODE
+; compiling (IN-PACKAGE :JONATHAN.ENCODE)
+; compiling (CL-SYNTAX:USE-SYNTAX :CL-ANNOT)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (DECLAIM (INLINE %WRITE-STRING))
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (DECLAIM (INLINE %WRITE-CHAR))
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (DECLAIM (INLINE STRING-TO-JSON))
+; compiling (DEFUN STRING-TO-JSON ...)
+; compiling (DEFMACRO WITH-MACRO-P ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (DECLAIM (INLINE ALIST-TO-JSON))
+; compiling (DEFUN ALIST-TO-JSON ...)
+; compiling (DECLAIM (INLINE PLIST-TO-JSON))
+; compiling (DEFUN PLIST-TO-JSON ...)
+; compiling (DECLAIM (INLINE LIST-TO-JSON))
+; compiling (DEFUN LIST-TO-JSON ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (DEFMETHOD %TO-JSON ...)
+; compiling (DEFMETHOD %TO-JSON ...)
+; compiling (DEFMETHOD %TO-JSON ...)
+; compiling (DEFMETHOD %TO-JSON ...)
+; compiling (DEFMETHOD %TO-JSON ...)
+; compiling (DEFMETHOD %TO-JSON ...)
+; compiling (DEFMETHOD %TO-JSON ...)
+; compiling (DEFMETHOD %TO-JSON ...)
+; compiling (DEFMETHOD %TO-JSON ...)
+; compiling (DEFMETHOD %TO-JSON ...)
+; compiling (DEFMETHOD %TO-JSON ...)
+; compiling (DEFMETHOD %TO-JSON ...)
+; compiling (DEFMETHOD %TO-JSON ...)
+
+; /home/ubuntu/.cache/common-lisp/sbcl-1.4.6-linux-x64/home/ubuntu/jonathan/src/encode-tmpHHRR8E8N.fasl written
+; compilation finished in 0:00:00.277
+; compiling file "/home/ubuntu/jonathan/src/decode.lisp" (written 14 APR 2018 09:19:06 AM):
+; compiling (IN-PACKAGE :CL-USER)
+; compiling (DEFPACKAGE JONATHAN.DECODE ...)
+Package: JONATHAN.DECODE
+; compiling (IN-PACKAGE :JONATHAN.DECODE)
+; compiling (CL-SYNTAX:USE-SYNTAX :ANNOT)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (DEFMACRO MAKE-NORMALIZER ...)
+; compiling (DEFVAR *INNER-NEST-P* ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (DEFINE-COMPILER-MACRO PARSE ...)
+; compiling (DEFUN FOLDABLE-KEYWORDS-TO-READ-P ...)
+
+; /home/ubuntu/.cache/common-lisp/sbcl-1.4.6-linux-x64/home/ubuntu/jonathan/src/decode-tmpWWJ02E3I.fasl written
+; compilation finished in 0:00:00.251
+; compiling file "/home/ubuntu/jonathan/src/helper.lisp" (written 14 APR 2018 09:19:06 AM):
+; compiling (IN-PACKAGE :CL-USER)
+; compiling (DEFPACKAGE JONATHAN.HELPER ...)
+Package: JONATHAN.HELPER
+; compiling (IN-PACKAGE :JONATHAN.HELPER)
+; compiling (CL-SYNTAX:USE-SYNTAX :ANNOT)
+; compiling (DEFVAR *COMPILE-ENCODER-PREFIX* ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (DEFUN CHECK-ARGS ...)
+; compiling (DEFUN NORMALIZE-FORM ...)
+; compiling (DEFUN REPLACE-FORM-WITH-PLACEHOLDERS ...)
+; compiling (CL-ANNOT.CORE:%ANNOTATION DOC ...)
+; compiling (DEFINE-COMPILER-MACRO TO-JSON ...)
+
+; /home/ubuntu/.cache/common-lisp/sbcl-1.4.6-linux-x64/home/ubuntu/jonathan/src/helper-tmpONTOHUJ2.fasl written
+; compilation finished in 0:00:00.051
+; compiling file "/home/ubuntu/jonathan/src/jonathan.lisp" (written 14 APR 2018 09:19:06 AM):
+; compiling (IN-PACKAGE :CL-USER)
+; compiling (DEFPACKAGE JONATHAN ...)
+Package: JONATHAN
+; compiling (IN-PACKAGE :JONATHAN)
+
+; /home/ubuntu/.cache/common-lisp/sbcl-1.4.6-linux-x64/home/ubuntu/jonathan/src/jonathan-tmpQT9APWMH.fasl written
+; compilation finished in 0:00:00.001
+@begin(section)
+@title(Globals)
+@cl:with-package[name="jonathan.decode"](
+@cl:doc(variable *empty-array-value*)
+)
+@cl:with-package[name="jonathan.decode"](
+@cl:doc(variable *empty-object-value*)
+)
+@cl:with-package[name="jonathan.decode"](
+@cl:doc(variable *false-value*)
+)
+@cl:with-package[name="jonathan.encode"](
+@cl:doc(variable *from*)
+)
+@cl:with-package[name="jonathan.decode"](
+@cl:doc(variable *null-value*)
+)
+@cl:with-package[name="jonathan.encode"](
+@cl:doc(variable *octets*)
+)
+@end(section)
+@begin(section)
+@title(Functions)
+@cl:with-package[name="jonathan.encode"](
+@cl:doc(function %write-char)
+)
+@cl:with-package[name="jonathan.encode"](
+@cl:doc(function %write-string)
+)
+@cl:with-package[name="jonathan.decode"](
+@cl:doc(function parse)
+)
+@cl:with-package[name="jonathan.encode"](
+@cl:doc(function to-json)
+)
+@end(section)
+@begin(section)
+@title(Gereric Functions)
+@cl:with-package[name="jonathan.encode"](
+@cl:doc(generic %to-json)
+)
+@end(section)
+@begin(section)
+@title(Macros)
+@cl:with-package[name="jonathan.helper"](
+@cl:doc(macro compile-encoder)
+)
+@cl:with-package[name="jonathan.encode"](
+@cl:doc(macro with-array)
+)
+@cl:with-package[name="jonathan.encode"](
+@cl:doc(macro with-object)
+)
+@cl:with-package[name="jonathan.encode"](
+@cl:doc(macro with-output)
+)
+@cl:with-package[name="jonathan.helper"](
+@cl:doc(macro with-output-to-string*)
+)
+@cl:with-package[name="jonathan.encode"](
+@cl:doc(macro write-item)
+)
+@cl:with-package[name="jonathan.encode"](
+@cl:doc(macro write-key)
+)
+@cl:with-package[name="jonathan.encode"](
+@cl:doc(macro write-key-value)
+)
+@cl:with-package[name="jonathan.encode"](
+@cl:doc(macro write-value)
+)
+@end(section)
+@begin(section)
+@title(Conditions)
+@cl:with-package[name="jonathan.error"](
+@cl:doc(condition <jonathan-error>)
+)
+@cl:with-package[name="jonathan.error"](
+@cl:doc(condition <jonathan-incomplete-json-error>)
+)
+@cl:with-package[name="jonathan.error"](
+@cl:doc(condition <jonathan-unexpected-eof-error>)
+)
+@end(section)

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+  Overview &ndash; JONATHAN
+</title>
+    <link rel="stylesheet" href="static/style.css"/>
+    
+  <link rel="stylesheet" href="static/highlight.css"/>
+  <script src="static/highlight.js"></script>
+  <style>
+   /* Highlight the current top-level TOC item, and hide the TOC of all other items */
+
+   .toc a[data-node="overview"] {
+       color: #AD3108;
+   }
+
+   .toc ol {
+       display: none;
+   }
+
+   .toc > ol {
+       display: block;
+   }
+
+   .toc li a[data-node="overview"] + ol {
+       display: block;
+   }
+
+   .toc li a[data-node="overview"] + ol li {
+       font-size: 16px;
+       margin: 0 10px;
+   }
+
+   .toc li a[active] + ol li:first-child {
+       margin-top: 5px;
+   }
+  </style>
+
+  </head>
+  <body>
+    
+  <h1 class="doc-title">JONATHAN » Overview</h1>
+  <article id="article" data-section="overview">
+    <aside>
+      <ol class="toc"><li><a href="overview.html" data-node="overview">Overview</a><ol><li><a href="overview.html#description" data-node="description">Description</a></li><li><a href="overview.html#images" data-node="images">Images</a><ol><li><a href="overview.html#1.-to-json" data-node="1.-to-json">1. to-json</a></li><li><a href="overview.html#2.-parse" data-node="2.-parse">2. parse</a></li><li><a href="overview.html#3.-parse-partially" data-node="3.-parse-partially">3. parse-partially</a></li></ol></li><li><a href="overview.html#examples" data-node="examples">Examples</a><ol><li><a href="overview.html#0-1.-to-json" data-node="0-1.-to-json">1. to-json</a></li><li><a href="overview.html#2.-compile-encoder" data-node="2.-compile-encoder">2. compile-encoder</a></li><li><a href="overview.html#3.-parse" data-node="3.-parse">3. parse</a></li><li><a href="overview.html#4.-helpers" data-node="4.-helpers">4. helpers</a></li></ol></li><li><a href="overview.html#author" data-node="author">Author</a></li><li><a href="overview.html#licence" data-node="licence">Licence</a></li></ol></li><li><a href="globals.html" data-node="globals">Globals</a></li><li><a href="functions.html" data-node="functions">Functions</a></li><li><a href="gereric-functions.html" data-node="gereric-functions">Gereric Functions</a></li><li><a href="macros.html" data-node="macros">Macros</a></li><li><a href="conditions.html" data-node="conditions">Conditions</a></li></ol>
+    </aside>
+    <main class="codex-section">
+      <p>
+<a href="https://travis-ci.org/Rudolph-Miller/jonathan"><img src="https://travis-ci.org/Rudolph-Miller/jonathan.svg"/></a></p><p><a href="https://circleci.com/gh/Rudolph-Miller/jonathan"><img src="https://circleci.com/gh/Rudolph-Miller/jonathan.svg"/></a></p><p><a href="https://coveralls.io/repos/Rudolph-Miller/jonathan"><img src="https://coveralls.io/repos/Rudolph-Miller/jonathan/badge.svg"/></a>
+<a href="http://quickdocs.org/jonathan/"><img src="http://quickdocs.org/badge/jonathan.svg"/></a>
+</p><h1 id="description">Description</h1>
+High performance JSON encoder and decoder. Currently support: SBCL, CCL.
+<p>
+</p><h1 id="images">Images</h1>
+<h2 id="1.-to-json">1. to-json</h2>
+<img src="1.to-json.png"/>
+<pre><code class="lisp">(let ((post (compile-encoder () (text)
+               (list :|channel| &quot;lisp-alien&quot;
+                     :|username| &quot;alien-bot&quot;
+                     :|text| text
+                     :|icon_url| &quot;http://www.lisperati.com/lisplogo_warning2_256.png&quot;))))
+  (time
+   (dotimes (_ 100000)
+     (funcall post &quot;Post from Alien!&quot;))))
+;; =&gt; 0.095
+
+(flet ((post (text)
+         (jonathan:to-json
+               (list :|channel| &quot;lisp-alien&quot;
+                     :|username| &quot;alien-bot&quot;
+                     :|text| text
+                     :|icon_url| &quot;http://www.lisperati.com/lisplogo_warning2_256.png&quot;))))
+  (time
+   (dotimes (_ 100000)
+     (post &quot;Post from Alien!&quot;))))
+;; =&gt; 0.095
+
+(flet ((post (text)
+         (format nil &quot;{\&quot;channel\&quot;:\&quot;lisp-alien\&quot;,\&quot;username\&quot;:\&quot;alien-bot\&quot;,\&quot;text\&quot;:~s,\&quot;icon_url\&quot;:\&quot;http://www.lisperati.com/lisplogo_warning2_256.png\&quot;}&quot; text)))
+  (time
+   (dotimes (_ 100000)
+     (post &quot;Post from Alien!&quot;))))&quot;\&quot;}&quot;))))
+;; =&gt; 0.146
+
+(flet ((post (text)
+         (jonathan:to-json
+               (list :|channel| &quot;lisp-alien&quot;
+                     :|username| &quot;alien-bot&quot;
+                     :|text| text
+                     :|icon_url| &quot;http://www.lisperati.com/lisplogo_warning2_256.png&quot;))))
+  (time
+   (dotimes (_ 100000)
+     (post &quot;Post from Alien!&quot;))))
+;; =&gt; 0.604 - without compiler-macro.
+
+(flet ((post (text)
+         (jsown:to-json
+          `(:obj (:|channel| . &quot;lisp-alien&quot;)
+                 (:|username| . &quot;alien-bot&quot;)
+                 (:|text| . ,text)
+                 (:|icon_url| . &quot;http://www.lisperati.com/lisplogo_warning2_256.png&quot;)))))
+  (time
+   (dotimes (_ 100000)
+     (post &quot;Post from Alien!&quot;))))
+;; =&gt; 1.117
+</code></pre>
+
+<h2 id="2.-parse">2. parse</h2>
+<img src="2.parse.png"/>
+<pre><code class="lisp">(let ((s &quot;{\&quot;key1\&quot;:\&quot;value\&quot;,\&quot;key2\&quot;:1.1,\&quot;key3\&quot;:[\&quot;Hello\&quot;,1.2]}&quot;))
+  (time
+   (dotimes (_ 100000)
+     (jonathan:parse s :as :alist))))
+;; =&gt; 0.174
+
+(let ((s &quot;{\&quot;key1\&quot;:\&quot;value\&quot;,\&quot;key2\&quot;:1.1,\&quot;key3\&quot;:[\&quot;Hello\&quot;,1.2]}&quot;))
+  (time
+   (dotimes (_ 100000)
+     (jonathan:parse s :as :jsown))))
+;; =&gt; 0.181
+
+(let ((s &quot;{\&quot;key1\&quot;:\&quot;value\&quot;,\&quot;key2\&quot;:1.1,\&quot;key3\&quot;:[\&quot;Hello\&quot;,1.2]}&quot;))
+  (time
+   (dotimes (_ 100000)
+     (jsown:parse s))))
+;; =&gt; 0.204
+</code></pre>
+
+<h2 id="3.-parse-partially">3. parse-partially</h2>
+<img src="3.parse-partially.png"/>
+<pre><code class="lisp">(let ((s &quot;{\&quot;key1\&quot;:\&quot;value\&quot;,\&quot;key2\&quot;:1.1,\&quot;key3\&quot;:[\&quot;Hello\&quot;,1.2]}&quot;))
+  (time
+   (dotimes (_ 100000)
+     (jonathan:parse s :as :alist :keywords-to-read '(&quot;key1&quot;)))))
+;; =&gt; 0.065
+
+(let ((s &quot;{\&quot;key1\&quot;:\&quot;value\&quot;,\&quot;key2\&quot;:1.1,\&quot;key3\&quot;:[\&quot;Hello\&quot;,1.2]}&quot;))
+  (time
+   (dotimes (_ 100000)
+     (jonathan:parse s :as :jsown :keywords-to-read '(&quot;key1&quot;)))))
+;; =&gt; 0.069
+
+(let ((s &quot;{\&quot;key1\&quot;:\&quot;value\&quot;,\&quot;key2\&quot;:1.1,\&quot;key3\&quot;:[\&quot;Hello\&quot;,1.2]}&quot;))
+  (time
+   (dotimes (_ 100000)
+     (jsown:parse s &quot;key1&quot;))))
+;; =&gt; 0.085
+</code></pre>
+
+<p>
+</p><h1 id="examples">Examples</h1>
+<h2 id="0-1.-to-json">1. to-json</h2>
+<pre><code class="lisp">;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Usage
+
+(to-json '(:name &quot;Common Lisp&quot; :born 1984 :impls (SBCL KCL)))
+;; =&gt; &quot;{\&quot;NAME\&quot;:\&quot;Common Lisp\&quot;,\&quot;BORN\&quot;:1984,\&quot;IMPLS\&quot;:[\&quot;SBCL\&quot;,\&quot;KCL\&quot;]}&quot;
+
+(to-json '(:name &quot;Common Lisp&quot; :born 1984 :impls (SBCL KCL))
+         :octets t)
+;; =&gt; #(123 34 78 65 77 69 34 58 34 67 111 109 109 111 110 32 76 ...)
+
+(to-json '((:name . &quot;Common Lisp&quot;) (:born . 1984) (:impls SBCL KCL))
+         :from :alist)
+;; =&gt; &quot;{\&quot;NAME\&quot;:\&quot;Common Lisp\&quot;,\&quot;BORN\&quot;:1984,\&quot;IMPLS\&quot;:[\&quot;SBCL\&quot;,\&quot;KCL\&quot;]}&quot;
+
+(to-json '(:obj (:name . &quot;Common Lisp&quot;) (:born . 1984) (:impls SBCL KCL))
+         :from :jsown)
+;; =&gt; &quot;{\&quot;NAME\&quot;:\&quot;Common Lisp\&quot;,\&quot;BORN\&quot;:1984,\&quot;IMPLS\&quot;:[\&quot;SBCL\&quot;,\&quot;KCL\&quot;]}&quot;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Restricted Property List Samples
+
+(to-json '(:name :age :born :impls))
+;; =&gt; &quot;{\&quot;NAME\&quot;:\&quot;AGE\&quot;,\&quot;BORN\&quot;:\&quot;IMPLS\&quot;}&quot;
+;; not &quot;[\&quot;NAME\&quot;,\&quot;AGE\&quot;,\&quot;BORN\&quot;,\&quot;IMPLS\&quot;]&quot;
+
+(to-json '(:name &quot;Common Lisp&quot; :born))
+;; =&gt; &quot;{\&quot;NAME\&quot;:\&quot;Common Lisp\&quot;,\&quot;BORN\&quot;:[]}&quot;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Extend to-json
+
+(defclass user ()
+  ((id :type integer :initarg :id)
+   (name :type string :initarg :name)))
+
+(defmethod %to-json ((user user))
+  (with-object
+    (write-key-value &quot;id&quot; (slot-value user 'id))
+    (write-key-value &quot;name&quot; (slot-value user 'name))))
+
+(to-json (make-instance 'user :id 1 :name &quot;Rudolph&quot;))
+;; =&gt; &quot;{\&quot;id\&quot;:1,\&quot;name\&quot;:\&quot;Rudolph\&quot;}&quot;
+</code></pre>
+
+<h2 id="2.-compile-encoder">2. compile-encoder</h2>
+<pre><code class="lisp">(compile-encoder () (name)
+  (list :name name))
+;; =&gt; #&lt;FUNCTION (LAMBDA (name))&gt;
+
+(funcall * &quot;Rudolph&quot;)
+;; =&gt; &quot;{\&quot;NAME\&quot;:\&quot;Rudolph\&quot;}&quot;
+
+(compile-encoder (:from :alist) (name)
+  `((&quot;name&quot; . ,name)))
+;; =&gt; #&lt;FUNCTION (LAMBDA (name))&gt;
+
+(funcall * &quot;Rudolph&quot;)
+;; =&gt; &quot;{\&quot;name\&quot;:\&quot;Rudolph\&quot;}&quot;
+
+(compile-encoder (:octets t) (name)
+  (list :name name))
+;; =&gt; #&lt;FUNCTION (LAMBDA (name))&gt;
+
+(funcall * &quot;Rudolph&quot;)
+;; =&gt; #(123 34 75 69 89 49 ...)
+</code></pre>
+
+<h2 id="3.-parse">3. parse</h2>
+<pre><code class="lisp">(parse &quot;{\&quot;NAME\&quot;:\&quot;Common Lisp\&quot;,\&quot;BORN\&quot;:1984,\&quot;IMPLS\&quot;:[\&quot;SBCL\&quot;,\&quot;KCL\&quot;]}&quot;)
+;; =&gt; (:NAME &quot;Common Lisp&quot; :BORN 1984 :IMPLS (&quot;SBCL&quot; &quot;CCL&quot; &quot;KCL&quot;))
+
+(parse &quot;{\&quot;NAME\&quot;:\&quot;Common Lisp\&quot;,\&quot;BORN\&quot;:1984,\&quot;IMPLS\&quot;:[\&quot;SBCL\&quot;,\&quot;KCL\&quot;]}&quot;
+       :as :alist)
+;; =&gt; ((&quot;NAME&quot; . &quot;Common Lisp&quot;) (&quot;BORN&quot; . 1984) (&quot;IMPLS&quot; &quot;SBCL&quot; &quot;CCL&quot; &quot;KCL&quot;))
+
+(parse &quot;{\&quot;NAME\&quot;:\&quot;Common Lisp\&quot;,\&quot;BORN\&quot;:1984,\&quot;IMPLS\&quot;:[\&quot;SBCL\&quot;,\&quot;KCL\&quot;]}&quot;
+       :as :jsown)
+;; =&gt; (:obj (&quot;NAME&quot; . &quot;Common Lisp&quot;) (&quot;BORN&quot; . 1984) (&quot;IMPLS&quot; &quot;SBCL&quot; &quot;CCL&quot; &quot;KCL&quot;))
+
+(parse &quot;{\&quot;NAME\&quot;:\&quot;Common Lisp\&quot;,\&quot;BORN\&quot;:1984,\&quot;IMPLS\&quot;:[\&quot;SBCL\&quot;,\&quot;KCL\&quot;]}&quot;
+       :as :hash-table)
+;; =&gt; #&lt;HASH-TABLE :TEST EQUAL :COUNT 3&gt;
+
+(parse &quot;{\&quot;key\&quot;:\&quot;value\&quot;&quot;)
+;; =&gt; raise &lt;jonathan-unexpected-eof&gt;.
+
+(parse &quot;{\&quot;key\&quot;:\&quot;value\&quot;&quot; :junk-allowed t)
+;; =&gt; (:|key| &quot;value&quot;)
+
+(let ((*null-value* :null)
+      (*false-value* :false)
+      (*empty-array-value* :[]))
+  (parse &quot;{\&quot;null\&quot;:null,\&quot;false\&quot;:false,\&quot;empty\&quot;:[]}&quot;))
+;; =&gt; (:|null| :NULL :|false| :FALSE :|empty| :[])
+
+(parse &quot;{\&quot;key1\&quot;:\&quot;value1\&quot;,\&quot;key2\&quot;:\&quot;value2\&quot;}&quot; :keywords-to-read '(&quot;key1&quot;))
+;; =&gt; (:|key1| &quot;value1&quot;)
+
+(flet ((normalizer (key)
+         (with-vector-parsing (key)
+           (match-i-case
+             (&quot;key1&quot; (return-from normalizer &quot;other-key&quot;))
+             (otherwise (return-from normalizer nil))))))
+  (parse &quot;{\&quot;KEY1\&quot;:{\&quot;key2\&quot;:\&quot;value2\&quot;},\&quot;key3\&quot;:\&quot;value3\&quot;}&quot;
+         :keyword-normalizer #'normalizer))
+;; =&gt; (:|other-key| (:|key2| &quot;value2&quot;))
+
+(flet ((normalizer (key)
+         (with-vector-parsing (key)
+           (match-i-case
+             (&quot;key1&quot; (return-from normalizer &quot;other-key&quot;))
+             (otherwise (return-from normalizer nil))))))
+  (parse &quot;{\&quot;KEY1\&quot;:{\&quot;key2\&quot;:\&quot;value2\&quot;},\&quot;key3\&quot;:\&quot;value3\&quot;}&quot;
+         :keyword-normalizer #'normalizer
+         :normalize-all nil)
+  ;; =&gt; (:|other-key| (:|key2| &quot;value2&quot;))
+
+  (parse &quot;{\&quot;KEY1\&quot;:{\&quot;key2\&quot;:\&quot;value2\&quot;},\&quot;key3\&quot;:\&quot;value3\&quot;}&quot;
+         :keyword-normalizer #'normalizer
+         :normalize-all t)
+  ;; =&gt; (:|other-key| nil))
+
+(parse &quot;\&quot;\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\&quot;&quot;)
+;; =&gt; &quot;ジョナサン&quot;
+
+(parse &quot;\&quot;\\uD840\\uDC0B\&quot;&quot;)
+;; =&gt; &quot;𠀋&quot;
+
+(parse &quot;\&quot;\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\&quot;&quot;
+       :unescape-unicode-escape-sequence nil)
+;; =&gt; &quot;\u30b8\u30e7\u30ca\u30b5\u30f3&quot;
+</code></pre>
+
+<h2 id="4.-helpers">4. helpers</h2>
+<pre><code class="lisp">(defclass user ()
+  ((id :initarg :id)
+   (name :initarg :name)))
+   
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; with-object
+
+(defmethod %to-json ((user user))
+  (with-object
+    (write-key &quot;id&quot;)
+    (write-value (slot-value user 'id))
+    (write-key-value &quot;name&quot; (slot-value user 'name))))
+
+(to-json (make-instance 'user :id 1 :name &quot;Rudolph&quot;))
+;; =&gt; &quot;{\&quot;id\&quot;:1,\&quot;name\&quot;:\&quot;Rudolph\&quot;}&quot;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; with-array
+
+(defmethod %to-json ((user user))
+  (with-array
+    (write-item &quot;id&quot;)
+    (write-item (slot-value user 'id))
+    (write-item &quot;name&quot;)
+    (write-item (slot-value user 'name))))
+
+(to-json (make-instance 'user :id 1 :name &quot;Rudolph&quot;))
+;; =&gt; &quot;[\&quot;id\&quot;,1,\&quot;name\&quot;,\&quot;Rudolph\&quot;]&quot;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; with-output
+
+(with-output-to-string (stream)
+  (with-output (stream)
+    (with-object
+      (write-key-value &quot;key&quot; &quot;value&quot;))))
+;; =&gt; &quot;{\&quot;key\&quot;:\&quot;value\&quot;}&quot;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; with-output-to-string*
+
+(with-output-to-string*
+  (with-object
+    (write-key-value &quot;key&quot; &quot;value&quot;))))
+;; =&gt; &quot;{\&quot;key\&quot;:\&quot;value\&quot;}&quot;
+</code></pre>
+
+<p>
+</p><h1 id="author">Author</h1>
+<b>Rudolph-Miller</b>
+<p>
+</p><h1 id="licence">Licence</h1>
+MIT
+<p>
+</p>
+    </main>
+  </article>
+  <footer>
+    <div class="info">
+      Created with <a href="https://github.com/CommonDoc/codex">Codex</a>.
+    </div>
+  </footer>
+  <script>
+   HighlightLisp.highlight_auto();
+  </script>
+
+  </body>
+</html>

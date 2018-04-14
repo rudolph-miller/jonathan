@@ -1,0 +1,268 @@
+/* Template style */
+
+@import url(http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic);
+@import url(http://fonts.googleapis.com/css?family=Source+Serif+Pro:400,600,700);
+@import url(http://fonts.googleapis.com/css?family=Source+Code+Pro);
+
+body {
+    font-family: 'Source Serif Pro', serif;
+    color: #333;
+    font-weight: 400;
+    font-size: 18px;
+
+    background: white;
+}
+
+/* General layout */
+
+body {
+    width: 100%;
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+main {
+    width: 75%;
+    min-height: 100vh;
+    float: left;
+    padding: 0 35px;
+}
+
+article {
+    flex: 1;
+    margin-bottom: 100px;
+}
+
+/* Heading style */
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+}
+
+.doc-title {
+    margin: 25px 75px;
+}
+
+.codex-document, .codex-section {
+    width: 60%;
+    margin: 0 auto;
+}
+
+.codex-document-title {
+    width: 60%;
+    margin: 0 auto;
+}
+
+main > *:first-child {
+    margin-top: 0;
+}
+
+main h1 {
+    font-size: 36px;
+
+    margin-top: 36px;
+    padding-bottom: 10px;
+
+    border-bottom: 1px solid #eee;
+}
+
+main h2 {
+    font-size: 28px;
+
+    margin-top: 28px;
+    padding-bottom: 8px;
+
+    border-bottom: 1px solid #eee;
+}
+
+main h3 {
+    font-size: 24px;
+
+    margin-top: 24px;
+}
+
+main h4 {
+    font-size: 20px;
+
+    margin-top: 20;
+}
+
+main h5 {
+    font-size: 1em;
+
+    margin-top: 18px;
+}
+
+main h6 {
+    font-size: 1em;
+
+    margin-top: 18px;
+}
+
+/* Error style */
+
+.codex-error, .codex-warning {
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Separation between elements */
+
+main > *, dd > *, blockquote > * {
+    margin-bottom: 15px;
+}
+
+/* Lists */
+
+dd, li {
+    margin-left: 40px;
+}
+
+dt {
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+li {
+    margin-top: 15px;
+}
+
+/* Code */
+
+code {
+    font-family: Consolas, 'Liberation Mono', Courier, monospace;
+}
+
+pre > code {
+    font-size: 13px;
+}
+
+/* Link Style */
+
+a {
+    color: #AD3108;
+    text-decoration: none;
+}
+
+/* Quote style */
+
+blockquote {
+    padding-left: 25px;
+    border-left: 1px solid #ccc;
+}
+
+/* Table style */
+
+table {
+    border-collapse: collapse;
+}
+
+td {
+    padding: 15px;
+}
+
+table, td, th {
+    border: 1px solid black;
+}
+
+/* Images and figures */
+
+img {
+    max-width: 100%;
+}
+
+/* Table of Contents */
+
+.toc {
+    width: 25%;
+    float: left;
+    padding: 0 35px;
+}
+
+.toc a {
+    color: #333;
+    text-decoration: none;
+    position: relative;
+}
+
+.toc li {
+    list-style-type: none;
+    font-size: 19px;
+    margin-left: 0;
+    margin-bottom: 10px;
+}
+
+/* Footer */
+
+footer {
+    height: 120px;
+    line-height: 120px;
+    background: #f9f9f9;
+}
+
+footer .info {
+    margin: 0 75px;
+    text-align: right;
+}
+*, *:after, *:before {
+  margin: 0;
+  padding: 0;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+/* Common style for documentation nodes */
+
+/* Layout */
+
+.codex-doc-node > * {
+    margin-top: 20px;
+}
+
+.codex-slot > dd > * {
+    margin-bottom: 10px;
+}
+
+.codex-lambda-list, .codex-type-def {
+    display: inline-block;
+    margin-left: 15px;
+    margin-top: 0;
+    font-size: 15px;
+}
+
+/* Style */
+
+.codex-doc-node {
+    border-left: 5px solid;
+    display: block;
+    padding: 0 15px 15px 15px;
+}
+
+.codex-name {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* Documentation node colors */
+
+.codex-function {
+    border-left-color: rgba(77, 119, 203, 0.7);
+}
+
+.codex-macro {
+    border-left-color: rgba(153, 51, 204, 0.7);;
+}
+
+.codex-generic-function {
+    border-left-color: rgba(46, 83, 157, 0.7);
+}
+
+.codex-method {
+    border-left-color: rgba(46, 83, 157, 0.7);
+}
+
+.codex-class {
+    border-left-color: rgba(224, 153, 82, 0.7);
+}

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+  Conditions &ndash; JONATHAN
+</title>
+    <link rel="stylesheet" href="static/style.css"/>
+    
+  <link rel="stylesheet" href="static/highlight.css"/>
+  <script src="static/highlight.js"></script>
+  <style>
+   /* Highlight the current top-level TOC item, and hide the TOC of all other items */
+
+   .toc a[data-node="conditions"] {
+       color: #AD3108;
+   }
+
+   .toc ol {
+       display: none;
+   }
+
+   .toc > ol {
+       display: block;
+   }
+
+   .toc li a[data-node="conditions"] + ol {
+       display: block;
+   }
+
+   .toc li a[data-node="conditions"] + ol li {
+       font-size: 16px;
+       margin: 0 10px;
+   }
+
+   .toc li a[active] + ol li:first-child {
+       margin-top: 5px;
+   }
+  </style>
+
+  </head>
+  <body>
+    
+  <h1 class="doc-title">JONATHAN » Conditions</h1>
+  <article id="article" data-section="conditions">
+    <aside>
+      <ol class="toc"><li><a href="overview.html" data-node="overview">Overview</a><ol><li><a href="overview.html#description" data-node="description">Description</a></li><li><a href="overview.html#images" data-node="images">Images</a><ol><li><a href="overview.html#1.-to-json" data-node="1.-to-json">1. to-json</a></li><li><a href="overview.html#2.-parse" data-node="2.-parse">2. parse</a></li><li><a href="overview.html#3.-parse-partially" data-node="3.-parse-partially">3. parse-partially</a></li></ol></li><li><a href="overview.html#examples" data-node="examples">Examples</a><ol><li><a href="overview.html#0-1.-to-json" data-node="0-1.-to-json">1. to-json</a></li><li><a href="overview.html#2.-compile-encoder" data-node="2.-compile-encoder">2. compile-encoder</a></li><li><a href="overview.html#3.-parse" data-node="3.-parse">3. parse</a></li><li><a href="overview.html#4.-helpers" data-node="4.-helpers">4. helpers</a></li></ol></li><li><a href="overview.html#author" data-node="author">Author</a></li><li><a href="overview.html#licence" data-node="licence">Licence</a></li></ol></li><li><a href="globals.html" data-node="globals">Globals</a></li><li><a href="functions.html" data-node="functions">Functions</a></li><li><a href="gereric-functions.html" data-node="gereric-functions">Gereric Functions</a></li><li><a href="macros.html" data-node="macros">Macros</a></li><li><a href="conditions.html" data-node="conditions">Conditions</a></li></ol>
+    </aside>
+    <main class="codex-section">
+      
+
+<div class="codex-doc-node codex-record codex-condition"><code class="codex-name">&lt;jonathan-error&gt;</code><div class="codex-docstring">Base condition of jonathan-errors.</div><ul class="codex-slot-list"></ul></div>
+
+
+<div class="codex-doc-node codex-record codex-condition"><code class="codex-name">&lt;jonathan-incomplete-json-error&gt;</code><div class="codex-docstring">Incomplete JSON string error.</div><ul class="codex-slot-list"><li class="codex-slot codex-class-slot"><code class="codex-name">object</code><div class="codex-docstring">Parsing objcet slot.</div></li></ul></div>
+
+
+<div class="codex-doc-node codex-record codex-condition"><code class="codex-name">&lt;jonathan-unexpected-eof-error&gt;</code><div class="codex-docstring">Unexpecded EOF error.</div><ul class="codex-slot-list"><li class="codex-slot codex-class-slot"><code class="codex-name">object</code><div class="codex-docstring">Parsing object slot.</div></li></ul></div>
+
+
+    </main>
+  </article>
+  <footer>
+    <div class="info">
+      Created with <a href="https://github.com/CommonDoc/codex">Codex</a>.
+    </div>
+  </footer>
+  <script>
+   HighlightLisp.highlight_auto();
+  </script>
+
+  </body>
+</html>
