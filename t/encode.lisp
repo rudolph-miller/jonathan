@@ -151,6 +151,10 @@
     "{\"Rudolph\":\"Miller\"}"
     ":from :jsown.")
 
+(is (let ((user "bob"))
+      (to-json (list :a user :b user)))
+    "{\"A\":\"bob\",\"B\":\"bob\"}")
+
 (defclass user ()
   ((id :type integer :initarg :id)
    (name :type string :initarg :name)))
