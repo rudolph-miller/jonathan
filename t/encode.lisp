@@ -7,7 +7,7 @@
 
 (diag "jonathan-test.encode")
 
-(plan 26)
+(plan 27)
 
 (subtest "with-object"
   (is-print
@@ -146,6 +146,24 @@
 (is (to-json '((:|Rudolph| . "Miller")) :from :alist)
     "{\"Rudolph\":\"Miller\"}"
     ":from :alist.")
+
+(subtest "nested alist with array value"
+  (let ((a0 '(("a" . (("aa" . 1)))))
+        (a1 '(("a" . ((("aa" . 1))))))
+        (a2 '(("a" . ((("aa" . 1) ("bb" . 2))))))
+        (a3 '(("a" . ((("aa" . 1)) (("bb" . 2)))))))
+    (is (to-json a0 :from :alist)
+        "{\"a\":{\"aa\":1}}"
+        "value is alist")
+    (is (to-json a1 :from :alist)
+        "{\"a\":[{\"aa\":1}]}"
+        "value is array of alist")
+    (is (to-json a2 :from :alist)
+        "{\"a\":[{\"aa\":1,\"bb\":2}]}"
+        "value is array of alist")
+    (is (to-json a3 :from :alist)
+        "{\"a\":[{\"aa\":1},{\"bb\":2}]}"
+        "value is array of alists")))
 
 (is (to-json '(:obj (:|Rudolph| . "Miller")) :from :jsown)
     "{\"Rudolph\":\"Miller\"}"
