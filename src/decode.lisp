@@ -276,10 +276,7 @@
                                          (let* ((rest-num (parse-integer rest-num-str))
                                                 (digits-len (the fixnum (- (pos) rest-start)))
                                                 (bits-len (the fixnum (+ digits-len (length num-str) (if neg -1 0))))
-                                                (significand (coerce (/ rest-num (expt 10 digits-len))
-                                                                     (if (< 8 bits-len)
-                                                                         'double-float
-                                                                         'single-float))))
+                                                (significand (convert-significand digits-len bits-len rest-num)))
                                            (return
                                              (if neg
                                                  (- num significand)
@@ -295,7 +292,26 @@
                                                     (if (< exp-num 0)
                                                         (float (expt 10 exp-num))
                                                         (expt 10 exp-num)))))))))
-                           (return-from read-number (the fixnum num)))))))
+                           (return-from read-number (the fixnum num))))))
+		 (convert-significand (digits-len bits-len rest-num)
+		   (cond ((> digits-len 20)
+			  (coerce (/ rest-num (expt 10 digits-len))
+				  (if (< 8 bits-len)
+				      'double-float
+				      'single-float)))
+			 ((< 8 bits-len)
+			  (* rest-num
+			     (aref #.(coerce (loop for i from 0 to 20
+						   collect (coerce (expt 10 (- i))
+								   'double-float))
+					     'simple-vector)
+				   digits-len)))
+			 ((* rest-num
+			     (aref #.(coerce (loop for i from 0 to 8
+						   collect (coerce (expt 10 (- i))
+								   'single-float))
+					     'simple-vector)
+				   digits-len))))))
           (declare (inline read-object
                            read-string
                            read-unicode-escape-sequence
