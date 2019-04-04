@@ -75,7 +75,7 @@
                                                 :object string))
                                     `(error '<jonathan-unexpected-eof-error> :object string)))))))
                  (skip-spaces ()
-                   `(skip* #\Space #\Newline #\Tab))
+                   `(skip* #\Space #\Newline #\Tab #\Return))
                  (with-skip-spaces (&body body)
                    `(progn
                       (skip-spaces)
