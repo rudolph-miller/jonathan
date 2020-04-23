@@ -161,6 +161,15 @@
 (parse-test 0.1
             "with float.")
 
+(parse-test -0.0
+            "with negative float zero.")
+
+(parse-test -0.1
+            "with negative float.")
+
+(parse-test -9.9
+            "with negative float.")
+
 (parse-test *upper-exponent*
             "with E.")
 
@@ -290,10 +299,15 @@
     (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\"")
         "ジョナサン"
         "without surrogate pair.")
-    #+(or :sbcl :clisp)
+    #+(or :sbcl :clisp :ccl)
     (is (parse "\"\\uD840\\uDC0B\"")
         "𠀋"
-        "with surrogate pair."))
+        "with surrogate pair.")
+    (is (parse "\"\\uD83D\\uDE3E\\uD83D\\uDD2A\"")
+        (concatenate 'string
+                     (parse "\"\\uD83D\\uDE3E\"")
+                     (parse "\"\\uD83D\\uDD2A\""))
+        "surrogate pairs should be parsed equally when they follow together and separate from each other."))
 
   (subtest "NIL"
     (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\""
@@ -329,6 +343,15 @@
       "Can parse double-float")
   (is (parse "35.659108")
       35.659108
-      "Can parse single-float"))
+      "Can parse single-float")
+  (is (parse "-35.65910807942215")
+      -35.65910807942215d0
+      "Can parse negative double-float")
+  (is (parse "-139.70372892916203")
+      -139.70372892916203d0
+      "Can parse negative double-float")
+  (is (parse "-35.659108")
+      -35.659107
+      "Can parse negative single-float"))
 
 (finalize)

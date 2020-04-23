@@ -104,12 +104,15 @@
 
 (defun replace-form-with-placeholders (form)
   (let ((placeholders (make-hash-table :test #'equal)))
-    (flet ((genstr () (symbol-name (gensym *compile-encoder-prefix*))))
+    (flet ((genstr () (symbol-name (gensym *compile-encoder-prefix*)))
+           (swap (object placeholder)
+             (setf (gethash placeholder placeholders) object)
+             placeholder))
       (labels ((sub (object)
                  (etypecase object
                    (string object)
                    (keyword object)
-                   (symbol (setf (gethash object placeholders) (genstr)))
+                   (symbol (swap object (genstr)))
                    (cons (let ((sym-name (symbol-name (car object))))
                            (cond
                              ((equal sym-name "LIST*")
@@ -118,7 +121,7 @@
                               (cons 'list (mapcar #'sub (cdr object))))
                              ((equal sym-name "QUOTE")
                               object)
-                             (t (setf (gethash object placeholders) (genstr)))))))))
+                             (t (swap object (genstr)))))))))
         (values (sub form) placeholders)))))
 
 @doc
@@ -142,13 +145,13 @@
                                              when (stringp item)
                                                do (multiple-value-bind (start end)
                                                       (scan (with-output-to-string*
-                                                              (%to-json ,val))
+                                                              (%to-json ,key))
                                                             item)
                                                     (when (and start end)
                                                       (setq matched-p t)
                                                       (setq item
                                                             (list (subseq item 0 start)
-                                                                  ',key
+                                                                  ',val
                                                                   (subseq item end)))))
                                              if matched-p
                                                nconc (ensure-list item)

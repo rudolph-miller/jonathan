@@ -224,7 +224,9 @@
 (defmethod %to-json ((list list))
   (cond
     ((and (eq *from* :alist)
-          (association-list-p list))
+          (association-list-p list)
+          ;; check if is alist key atom.
+          (atom (caar list)))
      (alist-to-json list))
     ((and (eq *from* :jsown)
           (eq (car list) :obj))

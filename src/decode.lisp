@@ -180,6 +180,9 @@
                                                            unicode-chars)))
                        (advance*))))
                  (read-unicode-escape-sequence ()
+                   "Returns a pair like (char . is-surrogate-p) where
+                    is-surrogate-p is `t' if char is a surrogate unicode symbol and
+                    `nil' otherwise."
                    (advance*)
                    (let ((char-code (parse-integer (subseq string (pos) (+ (pos) 4))
                                                    :radix 16)))
@@ -232,7 +235,7 @@
                                       (#\u (if unescape-unicode-escape-sequence
                                                (let ((pair (pop unicode-chars)))
                                                  (if (cdr pair)
-                                                     (incf index 11)
+                                                     (incf index 10)
                                                      (incf index 4))
                                                  (car pair))
                                                #\u))
@@ -283,7 +286,8 @@
                         :eof
                           (return-from read-number))
                        (bind (num-str (skip-while integer-char-p))
-                         (let ((num (the fixnum (parse-integer num-str))))
+                         (let ((num (the fixnum (parse-integer num-str)))
+                               (neg (the boolean (char= #\- (schar num-str 0)))))
                            (when (with-allowed-last-character ()
                                    (skip? #\.))
                              (setq num
@@ -292,13 +296,12 @@
                                        (bind (rest-num-str (skip-while integer-char-p))
                                          (let* ((rest-num (parse-integer rest-num-str))
                                                 (digits-len (the fixnum (- (pos) rest-start)))
-                                                (bits-len (the fixnum (+ digits-len (length num-str)))))
+                                                (bits-len (the fixnum (+ digits-len (length num-str) (if neg -1 0))))
+                                                (significand (convert-significand digits-len bits-len rest-num)))
                                            (return
-                                             (+ num
-                                                 (coerce (/ rest-num (expt 10 digits-len))
-                                                         (if (< 8 bits-len)
-                                                             'double-float
-                                                             'single-float))))))))))
+                                             (if neg
+                                                 (- num significand)
+                                                 (+ num significand)))))))))
                            (when (with-allowed-last-character ()
                                    (skip? #\e #\E))
                              (setq num
@@ -310,7 +313,26 @@
                                                     (if (< exp-num 0)
                                                         (float (expt 10 exp-num))
                                                         (expt 10 exp-num)))))))))
-                           (return-from read-number (the fixnum num)))))))
+                           (return-from read-number (the fixnum num))))))
+		 (convert-significand (digits-len bits-len rest-num)
+		   (cond ((> digits-len 20)
+			  (coerce (/ rest-num (expt 10 digits-len))
+				  (if (< 8 bits-len)
+				      'double-float
+				      'single-float)))
+			 ((< 8 bits-len)
+			  (* rest-num
+			     (aref #.(coerce (loop for i from 0 to 20
+						   collect (coerce (expt 10 (- i))
+								   'double-float))
+					     'simple-vector)
+				   digits-len)))
+			 ((* rest-num
+			     (aref #.(coerce (loop for i from 0 to 8
+						   collect (coerce (expt 10 (- i))
+								   'single-float))
+					     'simple-vector)
+				   digits-len))))))
           (declare (inline read-object
                            read-string
                            read-unicode-escape-sequence
