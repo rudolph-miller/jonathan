@@ -45,21 +45,25 @@
 
 @doc
 "Convert JSON String to LISP object."
-(defun parse (string &key (as :plist)
+(defun parse (input &key (as :plist)
                        junk-allowed
                        keywords-to-read
                        keyword-normalizer
                        normalize-all
                        exclude-normalize-keys
                        (unescape-unicode-escape-sequence t))
-  (declare (type simple-string string)
+  (declare (type (or simple-string (simple-array (unsigned-byte 8) *)) input)
            (type (or null function) keyword-normalizer)
            (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (let* ((as-alist (eq as :alist))
          (as-jsown (eq as :jsown))
          (as-hash-table (eq as :hash-table))
-         (*inner-nest-p* nil))
-    (with-vector-parsing (string)
+         (*inner-nest-p* nil)
+         (string (etypecase input
+                   (simple-string input)
+                   (simple-array (babel:octets-to-string input)))))
+    (declare (type simple-string string))
+    (with-string-parsing (string)
       (macrolet ((with-allowed-last-character ((&key char block (return-value t)) &body body)
                    (let* ((allowed-last-character-block (gensym "allowed-last-character-block")))
                      `(block ,allowed-last-character-block
