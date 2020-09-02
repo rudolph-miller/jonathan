@@ -12,7 +12,7 @@
 
 (diag "jonathan-test.decode")
 
-(plan 32)
+(plan 33)
 
 (defvar *upper-exponent* (gensym "upper"))
 (defvar *lower-exponent* (gensym "lower"))
@@ -190,6 +190,21 @@
 
 (parse-test '(:Rudolph :empty)
             "with object which have empty object in its value part.")
+
+(subtest "Parsing with arrays"
+  (let* ((*false-value* :false)
+         (*null-value* :null)
+         (*empty-object-value* :empty)
+         (*empty-array-value* :[])
+         (cases `((,(to-json '(1 2 3 4)) . #(1 2 3 4))
+                  (,(to-json '(1 2 (3 4) (5 6))) . #(1 2 #(3 4) #(5 6)))
+                  (,(to-json '(1 "bye" (:a 5) t :false :null ())) . #(1 "bye" (:a 5) t :false :null :[])))))
+    ;; We test an array as well because (subtypep 'array 'vector) => NIL so we test our coercing
+    (loop for type in '(vector array)
+          do (loop for (value . expected) in cases
+                   do (is (jonathan:parse value :array-as type)
+                          expected
+                          :test #'equalp)))))
 
 (subtest "<jonathan-unexpected-eof>"
   (is-error (parse "{\key\":\"value\"")
