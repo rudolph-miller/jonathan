@@ -59,6 +59,8 @@
          (as-jsown (eq as :jsown))
          (as-hash-table (eq as :hash-table))
          (*inner-nest-p* nil))
+	(when (adjustable-array-p string)
+	   (setf string (coerce string `(simple-array character ,(array-dimensions string)))))
     (with-vector-parsing (string)
       (macrolet ((with-allowed-last-character ((&key char block (return-value t)) &body body)
                    (let* ((allowed-last-character-block (gensym "allowed-last-character-block")))
