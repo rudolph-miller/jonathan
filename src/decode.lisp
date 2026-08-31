@@ -54,7 +54,7 @@
                        (unescape-unicode-escape-sequence t))
   (declare (type simple-string string)
            (type (or null function) keyword-normalizer)
-           (optimize (speed 3) (safety 0) (debug 0) (space 0)))
+           (optimize (speed 3) (safety 0) (space 0)))
   (let* ((as-alist (eq as :alist))
          (as-jsown (eq as :jsown))
          (as-hash-table (eq as :hash-table))
