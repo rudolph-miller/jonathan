@@ -10,9 +10,17 @@
                 :foldable-keywords-to-read-p))
 (in-package :jonathan-test.decode)
 
+(defun code-point-string (code)
+  (if (and (>= code #x10000) (< char-code-limit #x110000))
+      (let ((v (- code #x10000)))
+        (coerce (list (code-char (+ #xd800 (ash v -10)))
+                      (code-char (+ #xdc00 (logand v #x3ff))))
+                'string))
+      (string (code-char code))))
+
 (diag "jonathan-test.decode")
 
-(plan 32)
+(plan 35)
 
 (defvar *upper-exponent* (gensym "upper"))
 (defvar *lower-exponent* (gensym "lower"))
@@ -280,25 +288,22 @@
         "specified.")))
 
 (subtest ":unescape-unicode-escape-sequence"
-  (subtest "T"
-    (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\"")
-        "ジョナサン"
-        "without surrogate pair.")
-    #+(or :sbcl :clisp :ccl)
-    (is (parse "\"\\uD840\\uDC0B\"")
-        "𠀋"
-        "with surrogate pair.")
-    (is (parse "\"\\uD83D\\uDE3E\\uD83D\\uDD2A\"")
-        (concatenate 'string
-                     (parse "\"\\uD83D\\uDE3E\"")
-                     (parse "\"\\uD83D\\uDD2A\""))
-        "surrogate pairs should be parsed equally when they follow together and separate from each other."))
+  (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\"")
+      "ジョナサン"
+      "T: without surrogate pair.")
+  (is (parse "\"\\uD840\\uDC0B\"")
+      (code-point-string #x2000B)
+      "T: with surrogate pair.")
+  (is (parse "\"\\uD83D\\uDE3E\\uD83D\\uDD2A\"")
+      (concatenate 'string
+                   (parse "\"\\uD83D\\uDE3E\"")
+                   (parse "\"\\uD83D\\uDD2A\""))
+      "T: surrogate pairs should be parsed equally when they follow together and separate from each other.")
 
-  (subtest "NIL"
-    (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\""
-               :unescape-unicode-escape-sequence nil)
-        "\u30b8\u30e7\u30ca\u30b5\u30f3"
-        "pass.")))
+  (is (parse "\"\\u30b8\\u30e7\\u30ca\\u30b5\\u30f3\""
+             :unescape-unicode-escape-sequence nil)
+      "\u30b8\u30e7\u30ca\u30b5\u30f3"
+      "NIL: pass."))
 
 (subtest "<jonathan-without-tail-surrogate-error>"
   (is-error (parse "\"\\uD840\"")
